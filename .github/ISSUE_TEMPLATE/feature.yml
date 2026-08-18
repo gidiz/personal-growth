@@ -1,0 +1,63 @@
+name: Feature / Implementation Ticket
+description: Bounded product or technical implementation work
+title: "[TICKET] "
+labels: ["type:feature"]
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+    validations:
+      required: true
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+    validations:
+      required: true
+  - type: textarea
+    id: requirements
+    attributes:
+      label: Requirements
+      description: One requirement per bullet
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: Use AC1, AC2, ...
+    validations:
+      required: true
+  - type: textarea
+    id: out_of_scope
+    attributes:
+      label: Out of Scope
+    validations:
+      required: true
+  - type: dropdown
+    id: security
+    attributes:
+      label: Security Impact
+      options:
+        - None
+        - Frontend
+        - Backend
+        - Full
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+  - type: textarea
+    id: governing
+    attributes:
+      label: Governing Documents
+      description: PRD/HLD/LLD/ADR references
+  - type: textarea
+    id: tests
+    attributes:
+      label: Tests Required
+    validations:
+      required: true

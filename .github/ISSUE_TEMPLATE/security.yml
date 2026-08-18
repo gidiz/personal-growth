@@ -1,0 +1,50 @@
+name: Security Remediation
+description: Track an approved security finding remediation
+title: "[SEC] "
+labels: ["type:security"]
+body:
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - CRITICAL
+        - HIGH
+        - MEDIUM
+        - LOW
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Frontend
+        - Backend
+        - Full
+    validations:
+      required: true
+  - type: textarea
+    id: finding
+    attributes:
+      label: Finding
+    validations:
+      required: true
+  - type: textarea
+    id: threat
+    attributes:
+      label: Threat / Impact
+    validations:
+      required: true
+  - type: textarea
+    id: remediation
+    attributes:
+      label: Required Remediation Outcome
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification / Tests
+    validations:
+      required: true

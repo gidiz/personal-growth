@@ -1,0 +1,49 @@
+name: Bug
+description: Reproducible defect
+title: "[BUG] "
+labels: ["type:bug"]
+body:
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed Behavior
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction Steps
+    validations:
+      required: true
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      options:
+        - Local
+        - Test
+        - Production
+    validations:
+      required: true
+  - type: dropdown
+    id: security
+    attributes:
+      label: Security Impact
+      options:
+        - None
+        - Frontend
+        - Backend
+        - Full
+    validations:
+      required: true
+  - type: textarea
+    id: regression
+    attributes:
+      label: Regression Test
+      description: What test should prevent recurrence?

@@ -30,3 +30,17 @@ Planned:
 ├── prompts/
 └── ISSUE_TEMPLATE/
 ```
+
+
+## Copilot execution layer
+
+The package now also includes:
+
+- `.github/copilot-instructions.md`
+- 9 custom agent profiles under `.github/agents/`
+- path-specific instructions under `.github/instructions/`
+- reusable workflow prompts under `.github/prompts/`
+- GitHub Issue Forms under `.github/ISSUE_TEMPLATE/`
+- `.github/SETUP_CHECKLIST.md`
+
+MCP server credentials/configuration are intentionally not hard-coded in this package. Configure them at repository/IDE/platform level according to ADR-007 and the setup checklist.

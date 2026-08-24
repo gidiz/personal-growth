@@ -3,24 +3,20 @@ mode: agent
 description: Run the controlled implementation-review-security-QA loop for one ticket.
 ---
 
-Run this workflow for one ticket:
+1. Verify Ready; move to In Progress.
+2. Implement and validate Local/Test.
+3. Move to In Review; Reviewer returns APPROVE | CHANGES_REQUIRED | BLOCKED.
+4. Reviewer CHANGES_REQUIRED -> fix, increment shared review-cycle counter, re-run required gates.
+5. Medium/High Security Impact -> Security Review; Security returns PASS | CHANGES_REQUIRED | BLOCKED.
+6. Security CHANGES_REQUIRED -> fix, increment the same counter, re-run relevant prior gates.
+7. Move to QA only after required review/security pass.
+8. QA returns PASS | FAIL | BLOCKED.
+9. QA FAIL -> fix, increment the same counter, re-run relevant gates.
+10. Done only after all required gates pass.
 
-1. Verify ticket is Ready.
-2. Move to In Progress.
-3. Implement.
-4. Validate locally/Test.
-5. Move to In Review.
-6. Reviewer checks.
-7. If blocker: fix and re-review.
-8. Maximum automated review cycles: 3.
-9. If Security Impact is Medium/High, move to Security Review and route correctly.
-10. Move to QA.
-11. QA validates acceptance/regression/cross-platform behavior.
-12. Move to Done only when required gates pass.
+Global budget: `MAX_REVIEW_CYCLES = 3`.
 
-If 3 review cycles fail:
-- move to Blocked
-- add `needs-human`
-- summarize unresolved blockers
+Any BLOCKED result -> Status Blocked + `needs-human` + blocker summary.
+Third failed correction cycle -> same escalation.
 
-Do not confuse review cycles with the GitHub Iteration field.
+Do not confuse review cycles with GitHub Iteration.

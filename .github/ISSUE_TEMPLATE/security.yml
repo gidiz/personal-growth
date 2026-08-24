@@ -1,53 +1,54 @@
 name: Security
-description: Security-focused hardening, risk remediation, or security requirement.
+description: Security hardening, vulnerability remediation, or security requirement.
 title: "[Security] "
 body:
   - type: markdown
     attributes:
       value: |
-        Project fields are managed in the GitHub Project. Use the Planner Agent to refine this issue before moving it to Ready.
+        Do not paste secrets, private user data, exploit payloads that expose real data, or Production credentials into this issue.
   - type: textarea
-    id: outcome
+    id: threat
     attributes:
-      label: Outcome / Problem
-      description: What user or system outcome should change?
-      placeholder: Describe the desired outcome, not only the implementation.
+      label: Threat / weakness
+      description: What trust-boundary weakness or security concern exists?
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Potential impact
+      description: What could an attacker or failure cause?
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Proposed severity
+      options: [Critical, High, Medium, Low, "Unknown / needs triage"]
+    validations:
+      required: true
+  - type: textarea
+    id: remediation
+    attributes:
+      label: Required remediation outcome
+      description: What security property must be true after the fix?
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification plan
+      description: How will Security verify remediation?
     validations:
       required: true
   - type: textarea
     id: scope
     attributes:
-      label: Scope
-      description: What is included?
+      label: Affected area / trust boundary
+      description: Frontend, Backend, Database, AI/RAG, Infrastructure, Cross-Cutting.
     validations:
       required: true
-  - type: textarea
-    id: out_of_scope
-    attributes:
-      label: Out of scope
-      description: What is intentionally excluded?
-  - type: textarea
-    id: acceptance
-    attributes:
-      label: Acceptance criteria
-      description: Use testable bullets.
-      placeholder: |
-        - [ ] ...
-        - [ ] ...
-    validations:
-      required: true
-  - type: textarea
-    id: validation
-    attributes:
-      label: Validation plan
-      description: How will we prove this works?
-  - type: textarea
-    id: architecture
-    attributes:
-      label: Architecture / ADR references
-      description: Link relevant repository docs or ADRs.
   - type: markdown
     attributes:
       value: |
-        Suggested Work Type: **Security**.
-        The Planner Agent should set Area, Priority, Security Impact, Estimate, Status, and Iteration in the GitHub Project.
+        Suggested Work Type: **Security**. Planner sets Area, Priority, Security Impact, Estimate, Status, and Iteration.

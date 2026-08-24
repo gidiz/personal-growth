@@ -1,28 +1,18 @@
-# Foundation Sync — August 2026
+# Foundation Sync — Review Cycle 1 Fixes
 
-This package synchronizes repository files with the setup already completed in GitHub and Supabase.
+This package incorporates the first Copilot PR review.
 
-## Main corrections
+Accepted corrections include: restored domain glossary, complete Reviewer/Security/QA gate contracts, shared 3-cycle correction budget, Test-only data guardrails, explicit `.vscode/mcp.json` Test-only exception, DevOps role alignment, provider-agnostic AI boundary, `bugfix/*` vocabulary, OCR/vision design, capture retry/confidence lifecycle, full RAG corpus contracts, constrained goal/challenge states, embedding lifecycle metadata, DECISION routing, low-confidence confirmation, non-causal trend language, bug/security Issue Form fields, QA/DevOps casing, explicit Supabase MCP allowlist, and read-only Security BE tools.
 
-- removed obsolete Epic -> Story -> Ticket planning model
-- standardized on Epic -> Feature/Task/Bug/Security
-- updated all GitHub Project field vocabulary
-- changed Security Impact to None/Low/Medium/High
-- renamed automated retry concept from Iteration to Review Cycle
-- added missing `technical-task.yml`
-- removed obsolete `type:*` labels from Issue Forms
-- updated README so `.github/` is no longer described as missing
-- updated setup checklist to reflect completed GitHub/Supabase work
-- documented Test-only Supabase MCP
-- added a VS Code workspace MCP config because IDE MCP is separate from GitHub cloud-agent MCP
-- added a DevOps custom agent to align with the existing `agent:devops` routing label
-- added feature scoping (`database,docs`) to the documented Supabase MCP URL
-- documented wildcard MCP tools as temporary and requiring later allowlist hardening
+Deliberately rejected: adding a redundant `profiles.user_id`. `profiles.id = auth.users.id` is the explicit 1:1 identity-table exception.
 
-## Intentionally not included
+## Manual GitHub setting still required
+Update Repository Settings -> Copilot -> MCP servers to match `.github/MCP_CONFIGURATION.md`, replacing `tools: ["*"]` with:
+- list_tables
+- list_extensions
+- list_migrations
+- apply_migration
+- execute_sql
+- search_docs
 
-- secret values
-- Supabase database password
-- Supabase access token
-- production credentials
-- generated application code (Expo scaffold is the next development step)
+Then re-run a read-only MCP verification.

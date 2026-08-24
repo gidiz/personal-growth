@@ -2,52 +2,50 @@ name: Bug
 description: Existing behavior does not work as intended.
 title: "[Bug] "
 body:
-  - type: markdown
-    attributes:
-      value: |
-        Project fields are managed in the GitHub Project. Use the Planner Agent to refine this issue before moving it to Ready.
   - type: textarea
-    id: outcome
+    id: observed
     attributes:
-      label: Outcome / Problem
-      description: What user or system outcome should change?
-      placeholder: Describe the desired outcome, not only the implementation.
+      label: Observed behavior
+      description: What actually happens?
     validations:
       required: true
   - type: textarea
-    id: scope
+    id: expected
     attributes:
-      label: Scope
-      description: What is included?
+      label: Expected behavior
+      description: What should happen instead?
     validations:
       required: true
   - type: textarea
-    id: out_of_scope
+    id: reproduction
     attributes:
-      label: Out of scope
-      description: What is intentionally excluded?
-  - type: textarea
-    id: acceptance
-    attributes:
-      label: Acceptance criteria
-      description: Use testable bullets.
+      label: Reproduction steps
       placeholder: |
-        - [ ] ...
-        - [ ] ...
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Web/iOS/Android, browser/device, Local/Test, relevant version.
     validations:
       required: true
   - type: textarea
-    id: validation
+    id: evidence
     attributes:
-      label: Validation plan
-      description: How will we prove this works?
+      label: Evidence
+      description: Logs, screenshots, error text, or other non-sensitive evidence.
   - type: textarea
-    id: architecture
+    id: regression
     attributes:
-      label: Architecture / ADR references
-      description: Link relevant repository docs or ADRs.
+      label: Regression test / validation
+      description: What check should prevent recurrence?
+    validations:
+      required: true
   - type: markdown
     attributes:
       value: |
-        Suggested Work Type: **Bug**.
-        The Planner Agent should set Area, Priority, Security Impact, Estimate, Status, and Iteration in the GitHub Project.
+        Suggested Work Type: **Bug**. Planner sets Area, Priority, Security Impact, Estimate, Status, and Iteration.

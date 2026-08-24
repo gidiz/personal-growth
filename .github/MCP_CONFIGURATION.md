@@ -4,11 +4,9 @@ MCP is configured differently for GitHub cloud agents and VS Code.
 
 ## 1. GitHub Copilot cloud agent
 
-The GitHub repository-level MCP configuration is managed in:
+Managed in `Repository Settings -> Copilot -> MCP servers`.
 
-`Repository Settings -> Copilot -> MCP servers`
-
-Current Supabase Test configuration concept:
+Use:
 
 ```json
 {
@@ -19,41 +17,37 @@ Current Supabase Test configuration concept:
       "headers": {
         "Authorization": "Bearer $COPILOT_MCP_SUPABASE_TEST_ACCESS_TOKEN"
       },
-      "tools": ["*"]
+      "tools": [
+        "list_tables",
+        "list_extensions",
+        "list_migrations",
+        "apply_migration",
+        "execute_sql",
+        "search_docs"
+      ]
     }
   }
 }
 ```
 
-The secret is stored as a GitHub **Agents secret**:
-`COPILOT_MCP_SUPABASE_TEST_ACCESS_TOKEN`
+The secret is the GitHub Agents secret `COPILOT_MCP_SUPABASE_TEST_ACCESS_TOKEN`; never commit its value.
 
-Never commit its value.
+Supabase documents the Database tools `list_tables`, `list_extensions`, `list_migrations`, `apply_migration`, and `execute_sql`; `search_docs` is the docs tool.
 
-### Tool hardening
-`tools: ["*"]` is currently acceptable only as a temporary discovery/bootstrap state.
-Once the exact required Supabase MCP tool names are verified in the environment, replace wildcard exposure with a specific allowlist.
+## 2. Role-level policy
 
-The Supabase URL is also feature-scoped to `database,docs` to reduce exposed capability groups.
+Backend: all six.
 
-## 2. VS Code
+Security BE: `list_tables`, `list_extensions`, `list_migrations`, `search_docs` only.
 
-GitHub repository MCP settings do not automatically configure the IDE.
+Reviewer: no Supabase mutation tools.
 
-This package includes `.vscode/mcp.json` for VS Code.
+## 3. VS Code
 
-The VS Code configuration uses Supabase hosted MCP with project scoping and interactive OAuth, so no personal access token is committed.
+GitHub repository MCP settings do not automatically configure the IDE. `.vscode/mcp.json` uses the hosted Supabase Test MCP with interactive OAuth and no committed PAT.
 
-After opening the workspace:
-1. open Copilot Chat
-2. switch to Agent mode
-3. open the tools/MCP picker
-4. start/connect `supabase-test`
-5. complete Supabase browser authentication if prompted
-6. verify with a read-only question before making changes
+The hard-coded Test `project_ref` is an explicit non-secret developer-tooling exception under ADR-004.
 
-## 3. Production
+## 4. Production
 
-Do not configure a write-enabled Production Supabase MCP server.
-
-Production migrations must be reviewed and deployed through a controlled release process.
+Do not configure a write-enabled Production Supabase MCP server. Production migrations require controlled release.

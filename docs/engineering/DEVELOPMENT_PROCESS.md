@@ -1,214 +1,95 @@
 # Development Process
 
-## 1. Purpose
-
-This document defines how humans and Copilot agents turn product intent into reviewed, tested code.
-
-## 2. Work hierarchy
-
-Keep the hierarchy intentionally simple:
+## 1. Work hierarchy
 
 ```text
 Epic
 └── Feature / Task / Bug / Security
 ```
 
-Do not introduce a Story layer unless the project later has a clear need for it.
+## 2. Project fields
 
-## 3. GitHub Project fields
+Status: Backlog / Ready / In Progress / In Review / Security Review / QA / Blocked / Done
 
-### Status
-- Backlog — defined but not yet ready
-- Ready — refined and approved for implementation
-- In Progress — implementation underway
-- In Review — implementation complete, code/architecture review pending
-- Security Review — required security review underway
-- QA — acceptance/regression/cross-platform validation
-- Blocked — unresolved dependency/decision/problem
-- Done — acceptance criteria and required gates passed
+Work Type: Epic / Feature / Task / Bug / Security
 
-### Work Type
-- Epic
-- Feature
-- Task
-- Bug
-- Security
+Area: Frontend / Backend / Database / AI / RAG / Infrastructure / Cross-Cutting
 
-### Area
-- Frontend
-- Backend
-- Database
-- AI / RAG
-- Infrastructure
-- Cross-Cutting
+Priority: P0 – Critical / P1 – High / P2 – Medium / P3 – Low
 
-### Priority
-- P0 – Critical
-- P1 – High
-- P2 – Medium
-- P3 – Low
+Security Impact: None / Low / Medium / High
 
-### Security Impact
-- None
-- Low
-- Medium
-- High
+Estimate: XS / S / M / L / XL
 
-### Estimate
-- XS
-- S
-- M
-- L
-- XL
+Iteration is the native GitHub two-week planning field, not a retry counter.
 
-`XL` should normally be decomposed before `Ready`.
-
-### Iteration
-Use the native GitHub Iteration field with a two-week cadence.
-
-Do not use "Iteration" to mean automated retry cycles.
-
-## 4. Ticket lifecycle
-
-```text
-Backlog
-   |
-   v
-Ready
-   |
-   v
-In Progress
-   |
-   v
-In Review
-   |
-   +--------------------+
-   |                    |
-   | security required? |
-   | yes                | no
-   v                    |
-Security Review         |
-   |                    |
-   +---------+----------+
-             |
-             v
-            QA
-             |
-             v
-            Done
-```
-
-`Blocked` may be entered from any stage.
-
-## 5. Definition of Ready
-
-A non-Epic ticket is Ready only when:
-- problem/outcome is clear
-- scope is bounded
-- acceptance criteria are testable
-- dependencies are known
-- Area is assigned
-- Security Impact is assigned
-- Estimate is not XL unless explicitly approved
-- relevant architecture references are identified
-
-## 6. Definition of Done
-
-Done requires:
-- acceptance criteria met
-- code/types/lint/tests pass as applicable
-- reviewer approval
-- required security review passed
-- QA passed
-- docs/ADRs updated when behavior/architecture changed
-- no secret leakage
-- migration represented in Git when DB changed
-
-## 7. Agent routing
-
-### Product
-Clarifies value, scope, and acceptance behavior.
-
-### Architect
-Owns system boundaries and ADR decisions.
-
-### Planner
-Breaks approved scope into actionable tickets and fills Project fields.
-
-### Frontend
-Expo/React Native/Web UI and client logic.
-
-### Backend
-Supabase integration, Edge Functions, server-side logic, database implementation.
+## 3. Gate result contract
 
 ### Reviewer
-Code/architecture quality gate.
+- APPROVE
+- CHANGES_REQUIRED
+- BLOCKED
 
-### Security FE
-Client-side security and trust-boundary review.
+### Security
+- PASS
+- CHANGES_REQUIRED
+- BLOCKED
 
-### Security BE
-Auth, RLS, database, API, secrets, server/AI trust-boundary review.
+Each Security finding includes severity (Critical/High/Medium/Low), affected trust boundary, exploit/impact statement, required remediation, and verification method.
+
+Unresolved Critical/High findings block merge. Unresolved Medium findings block merge unless a human explicitly accepts the risk with rationale.
 
 ### QA
-Acceptance, regression, cross-platform, and test-quality gate.
+- PASS
+- FAIL
+- BLOCKED
 
-### DevOps
-CI/CD, environments, Vercel, EAS, deployment, runtime configuration.
+A QA failure includes failed criterion/regression, reproduction evidence, expected behavior, and recommended routing.
 
-## 8. Security routing
+## 4. Security routing
 
-- None / Low: normal review + QA unless reviewer escalates
+- None / Low: normal review + QA unless escalated
 - Medium / High: Security Review mandatory
 - Frontend impact: Security FE
 - Backend/Database/AI/Infrastructure impact: Security BE
 - Cross-Cutting: both when applicable
 
-## 9. Review loop
+## 5. Automated correction budget
 
-Use a maximum of:
+Use one shared correction budget across all required gates:
 
 `MAX_REVIEW_CYCLES = 3`
 
-A review cycle means:
-1. review finds blocking issue
-2. implementation agent fixes it
-3. review runs again
+One cycle is consumed whenever Reviewer returns CHANGES_REQUIRED, Security returns CHANGES_REQUIRED, or QA returns FAIL.
 
-After three failed cycles:
+Any BLOCKED result immediately moves the ticket to Blocked.
+
+After three failed correction cycles:
 - move to Blocked
 - add `needs-human`
-- summarize unresolved blockers
+- summarize unresolved blockers and failed gates
 
-This is unrelated to the GitHub two-week `Iteration` field.
-
-## 10. Branch and PR flow
+## 6. Branch and PR flow
 
 1. branch from `develop`
 2. implement one coherent ticket
 3. commit with ticket reference
 4. push branch
 5. open PR to `develop`
-6. reviewer/security/QA gates
-7. squash merge unless a different merge strategy is explicitly required
+6. Reviewer / Security / QA gates
+7. squash merge unless another strategy is explicitly required
 
-Production promotion from `develop` to `main` is a separate release decision.
-
-## 11. Database changes
+## 7. Database changes
 
 1. create migration file
 2. review SQL
 3. apply to Test
-4. validate schema/RLS
+4. validate schema/RLS with synthetic or purpose-built Test data
 5. merge migration
-6. later promote same migration to Production
+6. later promote the same reviewed migration to Production
 
-Do not rely on a dashboard-only schema state.
+Never validate a migration with Production credentials or private Production user data.
 
-## 12. Learning output
+## 8. Learning output
 
-For meaningful tickets, implementation summaries should include:
-- architecture touched
-- files changed
-- validation performed
-- one or two key technical lessons
+For meaningful tickets, include architecture touched, files changed, validation performed, and one or two key technical lessons.

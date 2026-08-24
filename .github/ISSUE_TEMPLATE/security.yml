@@ -1,50 +1,53 @@
-name: Security Remediation
-description: Track an approved security finding remediation
-title: "[SEC] "
-labels: ["type:security"]
+name: Security
+description: Security-focused hardening, risk remediation, or security requirement.
+title: "[Security] "
 body:
-  - type: dropdown
-    id: severity
+  - type: markdown
     attributes:
-      label: Severity
-      options:
-        - CRITICAL
-        - HIGH
-        - MEDIUM
-        - LOW
-    validations:
-      required: true
-  - type: dropdown
-    id: area
+      value: |
+        Project fields are managed in the GitHub Project. Use the Planner Agent to refine this issue before moving it to Ready.
+  - type: textarea
+    id: outcome
     attributes:
-      label: Area
-      options:
-        - Frontend
-        - Backend
-        - Full
+      label: Outcome / Problem
+      description: What user or system outcome should change?
+      placeholder: Describe the desired outcome, not only the implementation.
     validations:
       required: true
   - type: textarea
-    id: finding
+    id: scope
     attributes:
-      label: Finding
+      label: Scope
+      description: What is included?
     validations:
       required: true
   - type: textarea
-    id: threat
+    id: out_of_scope
     attributes:
-      label: Threat / Impact
+      label: Out of scope
+      description: What is intentionally excluded?
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Use testable bullets.
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
     validations:
       required: true
   - type: textarea
-    id: remediation
+    id: validation
     attributes:
-      label: Required Remediation Outcome
-    validations:
-      required: true
+      label: Validation plan
+      description: How will we prove this works?
   - type: textarea
-    id: verification
+    id: architecture
     attributes:
-      label: Verification / Tests
-    validations:
-      required: true
+      label: Architecture / ADR references
+      description: Link relevant repository docs or ADRs.
+  - type: markdown
+    attributes:
+      value: |
+        Suggested Work Type: **Security**.
+        The Planner Agent should set Area, Priority, Security Impact, Estimate, Status, and Iteration in the GitHub Project.

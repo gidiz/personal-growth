@@ -1,25 +1,26 @@
-# Implement Ticket Prompt
+---
+mode: agent
+description: Implement one Ready ticket with scoped changes and validation.
+---
 
-Implement only the active GitHub ticket.
+Act as the implementation agent appropriate to the ticket Area.
 
 Before editing:
-1. Read `AGENTS.md`.
-2. Read the active ticket.
-3. Read only relevant PRD/HLD/LLD/ADRs and `.rule` files.
-4. State the files/areas you expect to change.
-5. Identify blockers or architecture conflicts before coding.
+- read the ticket and acceptance criteria
+- read `AGENTS.md`
+- read relevant architecture/rules
+- state the intended files and validation plan
 
-During implementation:
-- obey Ticket Scope Lock;
-- add/update required tests;
-- do not implement follow-up tickets;
-- do not use Production;
-- do not weaken security to make checks pass.
+Implement only the ticket scope.
+
+For DB changes:
+- create migrations
+- apply/validate in Test
+- preserve RLS
+- never write Production through MCP
 
 Before finishing:
-- run relevant lint/typecheck/tests/build checks available for the ticket;
-- summarize changed files;
-- map implementation to acceptance criteria;
-- report remaining risks/blockers.
-
-Do not claim PASS for Reviewer, Security, or QA; those are separate roles.
+- run relevant lint/typecheck/tests
+- summarize files changed
+- explain one or two key technical decisions
+- identify any required Reviewer/Security/QA gates

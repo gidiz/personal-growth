@@ -1,642 +1,214 @@
-# DEVELOPMENT_PROCESS — Agent-Driven Delivery
+# Development Process
 
-**Status:** Draft v1.0  
-**Purpose:** Define how specialized GitHub Copilot agents plan, implement, review, secure and verify changes.
+## 1. Purpose
 
----
+This document defines how humans and Copilot agents turn product intent into reviewed, tested code.
 
-## 1. Development Model
+## 2. Work hierarchy
 
-The project follows:
-
-> **PRD-driven → architecture-governed → ticket-based → review-gated → iterative delivery**
-
-Work is tracked in GitHub Issues and GitHub Projects.
-
-Code changes should map to an approved ticket.
-
----
-
-## 2. Sources of Truth
-
-Priority order:
-
-1. Approved ADR relevant to the area
-2. HLD / LLD
-3. PRD acceptance criteria
-4. Ticket-specific requirements
-5. Repository instructions / coding conventions
-
-If two sources conflict, the agent must stop the conflicting change and escalate rather than invent a new rule.
-
----
-
-## 3. Agent Team
-
-### 3.1 Product Agent
-
-**Owns**
-- PRD
-- user stories
-- product scope
-- acceptance criteria
-- MVP boundaries
-
-**May modify**
-- `docs/product/**`
-
-**Must not**
-- implement production code;
-- make undocumented architectural decisions;
-- expand scope without explicit product justification.
-
----
-
-### 3.2 Architect Agent
-
-**Owns**
-- HLD
-- LLD
-- ADRs
-- architecture boundaries
-- data ownership model
-- deployment strategy
-- cross-cutting technical decisions
-
-**May modify**
-- `docs/architecture/**`
-- `docs/adr/**`
-
-**Default mode**
-- read/review production code, not feature implementation.
-
-**Escalation target**
-- repeated Dev Loop failure;
-- cross-domain conflict;
-- ticket requiring architecture change.
-
----
-
-### 3.3 Planner / Tech Lead Agent
-
-**Owns**
-- Epic/Story/Ticket decomposition
-- dependencies
-- Definition of Ready
-- security-impact classification
-- ticket sizing
-
-**May modify**
-- GitHub Issues / Project metadata
-- ticket templates/docs if explicitly authorized
-
-**Must not**
-- implement tickets;
-- silently redefine PRD or HLD.
-
----
-
-### 3.4 Frontend Agent
-
-**Owns**
-- Expo/React Native/Web implementation
-- UI
-- navigation
-- domain hooks
-- accessibility
-- RTL/LTR
-- frontend tests
-
-**Primary scope**
-- `app/**`
-- `components/**`
-- frontend portions of `features/**`
-- `hooks/**`
-
-**Must not without authorization**
-- change DB schema;
-- weaken auth/security controls;
-- add unrelated dependencies;
-- refactor unrelated areas;
-- implement other tickets.
-
----
-
-### 3.5 Backend / Data / AI Agent
-
-**Owns**
-- Supabase
-- PostgreSQL
-- migrations
-- RLS implementation
-- repositories/backend integrations
-- Edge Functions
-- AI provider integration
-- pgvector
-
-**Primary scope**
-- `supabase/**`
-- backend/data modules
-- server-side AI services
-
-**Must never**
-- expose service-role credentials;
-- expose AI secrets to client;
-- disable RLS as a shortcut;
-- trust caller-supplied user identity for authorization.
-
----
-
-### 3.6 Reviewer Agent
-
-**Purpose**
-Find defects and requirement/architecture mismatches.
-
-**Default mode**
-Read-only review.
-
-**Checks**
-- acceptance criteria;
-- correctness;
-- architecture;
-- regressions;
-- unnecessary complexity;
-- tests;
-- error handling.
-
-**Must not**
-- approve because code “looks good”;
-- rewrite large parts of implementation during review.
-
-Output statuses:
-- PASS
-- CHANGES_REQUESTED
-- BLOCKED
-
----
-
-### 3.7 Security Frontend Agent
-
-**Threat model**
-Client code and device/browser state are attacker-controlled.
-
-**Reviews**
-- token/session handling;
-- local storage of sensitive data;
-- Web XSS exposure;
-- deep links;
-- Expo/native permissions;
-- camera/microphone/photo access;
-- logging;
-- environment variables;
-- client-side secret leakage;
-- upload behavior;
-- dependency/browser security risks.
-
-**Default**
-Review-only.
-
-**Can implement**
-Only explicit security remediation tickets.
-
----
-
-### 3.8 Security Backend Agent
-
-**Threat model**
-Requests can be manipulated, replayed and crafted maliciously.
-
-**Reviews**
-- authentication;
-- authorization;
-- RLS;
-- SQL/RPC;
-- JWT handling;
-- IDOR;
-- Storage policies;
-- Edge Functions;
-- service role usage;
-- secrets;
-- user-scoped vector search;
-- prompt injection/data-boundary risks;
-- AI output validation;
-- rate/abuse controls;
-- sensitive logs.
-
-**Default**
-Review-only.
-
-**Can implement**
-Only explicit security remediation tickets.
-
----
-
-### 3.9 QA Agent
-
-**Purpose**
-Verify that the feature works, not merely that the code is readable.
-
-**Checks**
-- acceptance criteria;
-- lint/typecheck/tests;
-- build behavior;
-- Web/iOS/Android impact;
-- RTL/LTR;
-- regression paths;
-- environment-specific behavior.
-
-Output:
-- PASS
-- FAIL
-- BLOCKED
-
----
-
-## 4. Ticket Hierarchy
-
-Preferred hierarchy:
+Keep the hierarchy intentionally simple:
 
 ```text
 Epic
-└── Story
-    ├── FE Ticket
-    ├── BE Ticket
-    ├── Test Ticket
-    └── Security remediation ticket (only when needed)
+└── Feature / Task / Bug / Security
 ```
 
-Do not create separate security implementation tickets for every feature. Security review is a gate; remediation tickets are created only when findings warrant separate work.
+Do not introduce a Story layer unless the project later has a clear need for it.
 
----
+## 3. GitHub Project fields
 
-## 5. GitHub Project Fields
+### Status
+- Backlog — defined but not yet ready
+- Ready — refined and approved for implementation
+- In Progress — implementation underway
+- In Review — implementation complete, code/architecture review pending
+- Security Review — required security review underway
+- QA — acceptance/regression/cross-platform validation
+- Blocked — unresolved dependency/decision/problem
+- Done — acceptance criteria and required gates passed
 
-Recommended fields:
+### Work Type
+- Epic
+- Feature
+- Task
+- Bug
+- Security
 
-| Field | Values |
-|---|---|
-| Type | Epic / Story / Task / Bug / Security |
-| Area | FE / BE / AI / DB / Infra |
-| Priority | P0 / P1 / P2 / P3 |
-| Status | Backlog / Refinement / Ready / In Progress / Code Review / Security Review / QA / Done |
-| Security Impact | None / Frontend / Backend / Full |
-| Phase | 1–6 |
-| Iteration | 0–3 |
-| Risk | Low / Medium / High |
-| Estimate | XS / S / M / L |
+### Area
+- Frontend
+- Backend
+- Database
+- AI / RAG
+- Infrastructure
+- Cross-Cutting
 
----
+### Priority
+- P0 – Critical
+- P1 – High
+- P2 – Medium
+- P3 – Low
 
-## 6. Definition of Ready
+### Security Impact
+- None
+- Low
+- Medium
+- High
 
-A ticket is READY only when it includes:
+### Estimate
+- XS
+- S
+- M
+- L
+- XL
 
-- title;
-- parent Story/Epic;
-- context;
-- goal;
-- requirements;
-- acceptance criteria;
-- out-of-scope;
-- dependencies;
-- likely affected area;
-- security impact;
-- tests required;
-- relevant PRD/HLD/LLD/ADR references.
+`XL` should normally be decomposed before `Ready`.
 
-If scope is ambiguous enough to risk unrelated changes, Planner must refine it before implementation.
+### Iteration
+Use the native GitHub Iteration field with a two-week cadence.
 
----
+Do not use "Iteration" to mean automated retry cycles.
 
-## 7. Ticket Scope Lock
+## 4. Ticket lifecycle
 
-Developer instruction:
+```text
+Backlog
+   |
+   v
+Ready
+   |
+   v
+In Progress
+   |
+   v
+In Review
+   |
+   +--------------------+
+   |                    |
+   | security required? |
+   | yes                | no
+   v                    |
+Security Review         |
+   |                    |
+   +---------+----------+
+             |
+             v
+            QA
+             |
+             v
+            Done
+```
 
-> Implement only the active ticket.
+`Blocked` may be entered from any stage.
 
-Allowed:
-- required code;
-- directly related tests;
-- minimal supporting changes.
+## 5. Definition of Ready
 
-Not allowed:
-- unrelated refactor;
-- next-ticket implementation;
-- architecture redesign;
-- DB schema change not authorized by ticket/ADR;
-- public API contract change outside scope;
-- new dependency without justification.
+A non-Epic ticket is Ready only when:
+- problem/outcome is clear
+- scope is bounded
+- acceptance criteria are testable
+- dependencies are known
+- Area is assigned
+- Security Impact is assigned
+- Estimate is not XL unless explicitly approved
+- relevant architecture references are identified
 
-When blocked by an out-of-scope requirement, report `BLOCKED` and create/escalate the dependency.
+## 6. Definition of Done
 
----
+Done requires:
+- acceptance criteria met
+- code/types/lint/tests pass as applicable
+- reviewer approval
+- required security review passed
+- QA passed
+- docs/ADRs updated when behavior/architecture changed
+- no secret leakage
+- migration represented in Git when DB changed
 
-## 8. Security Impact Routing
+## 7. Agent routing
 
-Planner labels every ticket:
+### Product
+Clarifies value, scope, and acceptance behavior.
 
-### None
-Examples:
-- static spacing change;
-- copy-only UI change.
+### Architect
+Owns system boundaries and ADR decisions.
 
-No dedicated security review required unless Reviewer identifies risk.
+### Planner
+Breaks approved scope into actionable tickets and fills Project fields.
 
 ### Frontend
-Examples:
-- auth/session UI;
-- local persistence;
-- deep linking;
-- uploads;
-- native permissions.
-
-Requires Security FE.
+Expo/React Native/Web UI and client logic.
 
 ### Backend
-Examples:
-- migration;
-- RLS;
-- RPC;
-- Edge Function;
-- AI service;
-- Storage policy.
-
-Requires Security BE.
-
-### Full
-Examples:
-- authentication feature;
-- voice/image upload pipeline;
-- semantic search;
-- account deletion/export.
-
-Requires both Security FE and Security BE.
-
----
+Supabase integration, Edge Functions, server-side logic, database implementation.
 
-## 9. Standard Dev Loop
-
-```text
-READY
-  │
-  ▼
-IMPLEMENTING
-  │
-  ▼
-SELF CHECK
-  │
-  ▼
-REVIEW
-  │
-  ├─ CHANGES_REQUESTED ─► FIX ─┐
-  │                            │
-  ▼                            │
-SECURITY REVIEW (if required)  │
-  │                            │
-  ├─ BLOCKER ─────────────► FIX│
-  │                            │
-  ▼                            │
-QA                             │
-  │                            │
-  ├─ FAIL ─────────────────► FIX
-  │
-  ▼
-DONE
-```
+### Reviewer
+Code/architecture quality gate.
 
----
+### Security FE
+Client-side security and trust-boundary review.
 
-## 10. Iteration Policy
+### Security BE
+Auth, RLS, database, API, secrets, server/AI trust-boundary review.
 
-Maximum normal implementation loops per ticket:
+### QA
+Acceptance, regression, cross-platform, and test-quality gate.
 
-`MAX_ITERATIONS = 3`
+### DevOps
+CI/CD, environments, Vercel, EAS, deployment, runtime configuration.
 
-An iteration increments when a ticket returns from Reviewer/Security/QA to implementation.
+## 8. Security routing
 
-After 3 failed iterations:
+- None / Low: normal review + QA unless reviewer escalates
+- Medium / High: Security Review mandatory
+- Frontend impact: Security FE
+- Backend/Database/AI/Infrastructure impact: Security BE
+- Cross-Cutting: both when applicable
 
-- mark `BLOCKED`;
-- summarize failure pattern;
-- escalate to Architect;
-- do not continue random refactoring.
+## 9. Review loop
 
-Architect decides whether to:
-- clarify requirement;
-- split ticket;
-- create ADR;
-- change design;
-- authorize another iteration.
+Use a maximum of:
 
----
+`MAX_REVIEW_CYCLES = 3`
 
-## 11. Review Output Contract
+A review cycle means:
+1. review finds blocking issue
+2. implementation agent fixes it
+3. review runs again
 
-Reviewer output:
+After three failed cycles:
+- move to Blocked
+- add `needs-human`
+- summarize unresolved blockers
 
-```text
-TICKET: <id>
-RESULT: PASS | CHANGES_REQUESTED | BLOCKED
+This is unrelated to the GitHub two-week `Iteration` field.
 
-Acceptance Criteria:
-- AC1 PASS/FAIL
-- AC2 PASS/FAIL
+## 10. Branch and PR flow
 
-Architecture:
-PASS/FAIL
+1. branch from `develop`
+2. implement one coherent ticket
+3. commit with ticket reference
+4. push branch
+5. open PR to `develop`
+6. reviewer/security/QA gates
+7. squash merge unless a different merge strategy is explicitly required
 
-Tests:
-PASS/FAIL
+Production promotion from `develop` to `main` is a separate release decision.
 
-Findings:
-- severity
-- file/area
-- problem
-- required change
-```
+## 11. Database changes
 
-No praise-only reviews.
+1. create migration file
+2. review SQL
+3. apply to Test
+4. validate schema/RLS
+5. merge migration
+6. later promote same migration to Production
 
----
+Do not rely on a dashboard-only schema state.
 
-## 12. Security Finding Contract
+## 12. Learning output
 
-```text
-SECURITY REVIEW: <ticket>
-
-RESULT:
-PASS | CHANGES_REQUIRED | BLOCK_MERGE
-
-Finding:
-<short title>
-
-Severity:
-CRITICAL | HIGH | MEDIUM | LOW
-
-Area:
-FE | BE
-
-Threat:
-<what could go wrong>
-
-Evidence:
-<where/how observed>
-
-Required remediation:
-<expected security outcome>
-```
-
-Merge policy:
-
-- CRITICAL → BLOCK_MERGE
-- HIGH → BLOCK_MERGE
-- MEDIUM → fix in-ticket or explicit approved follow-up
-- LOW → follow-up allowed
-
----
-
-## 13. QA Output Contract
-
-```text
-QA: <ticket>
-RESULT: PASS | FAIL | BLOCKED
-
-Acceptance Criteria:
-- AC1 PASS
-- AC2 FAIL
-
-Platforms:
-- Web
-- iOS
-- Android
-
-Regression:
-PASS/FAIL
-
-Notes:
-<repro / evidence>
-```
-
----
-
-## 14. Definition of Done
-
-Ticket is DONE only when:
-
-- acceptance criteria pass;
-- implementation is within scope;
-- lint passes;
-- typecheck passes;
-- required tests pass;
-- Reviewer PASS;
-- required Security Agent(s) PASS;
-- QA PASS;
-- documentation/ADR updated when required;
-- PR is mergeable;
-- no unresolved CRITICAL/HIGH finding.
-
----
-
-## 15. Environment & Promotion Rules
-
-### Pull Request
-May receive preview build/deployment.
-
-### Test
-Integration branch deploys only to Test resources.
-
-### Production
-Production promotion requires:
-- approved PR;
-- QA PASS;
-- required Security PASS;
-- no blocker findings;
-- merge to `main`;
-- controlled migration/deployment pipeline.
-
-No agent may point Test code at Production credentials to “make it work.”
-
----
-
-## 16. Database Change Rules
-
-- schema change requires migration;
-- never manually patch Production as normal workflow;
-- migration must be tested in Test;
-- destructive migration needs explicit review and rollback/backup consideration;
-- RLS must be reviewed by Security BE;
-- vector/RPC functions must preserve user isolation.
-
----
-
-## 17. Architecture Change Rule
-
-Create/update an ADR when a ticket changes a durable architectural choice, including:
-
-- hosting;
-- environment topology;
-- auth;
-- data ownership;
-- local-first sync;
-- database boundary;
-- AI provider boundary;
-- security boundary;
-- cross-feature public contracts.
-
----
-
-## 18. Agent Permission Philosophy
-
-Use least privilege.
-
-An agent should receive:
-- the tools it needs;
-- read access to governing docs;
-- write scope only where its role requires it.
-
-Review agents should default to read-only behavior.
-
-No agent may interpret tool access as authorization to exceed ticket scope.
-
----
-
-## 19. Recommended `.github` Layout
-
-```text
-.github/
-├── copilot-instructions.md
-├── agents/
-│   ├── product.agent.md
-│   ├── architect.agent.md
-│   ├── planner.agent.md
-│   ├── frontend.agent.md
-│   ├── backend.agent.md
-│   ├── reviewer.agent.md
-│   ├── security-fe.agent.md
-│   ├── security-be.agent.md
-│   └── qa.agent.md
-├── instructions/
-│   ├── frontend.instructions.md
-│   ├── supabase.instructions.md
-│   └── tests.instructions.md
-├── prompts/
-│   ├── create-ticket.prompt.md
-│   ├── implement-ticket.prompt.md
-│   ├── review-ticket.prompt.md
-│   └── dev-loop.prompt.md
-└── ISSUE_TEMPLATE/
-```
-
----
-
-## 20. Golden Rule
-
-> The agent that defines the requirement should not be the same role that implements and approves it.
-
-Product defines **what**.  
-Architecture defines **how at system level**.  
-Planner turns it into **bounded work**.  
-Developer implements.  
-Reviewer challenges correctness.  
-Security challenges abuse resistance.  
-QA proves behavior.
+For meaningful tickets, implementation summaries should include:
+- architecture touched
+- files changed
+- validation performed
+- one or two key technical lessons

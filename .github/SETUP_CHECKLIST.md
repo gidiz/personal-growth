@@ -1,40 +1,122 @@
-# One-Time Platform Setup
+# Setup Checklist
 
-These steps require platform/account configuration and cannot be completed by repository files alone.
+Last synchronized with the repository setup performed during August 2026.
+
+## Foundation
+- [x] PRD
+- [x] HLD
+- [x] LLD
+- [x] ADRs
+- [x] Development Process
+- [x] AGENTS.md
+- [x] repository rules
+- [x] Copilot custom agents
+- [x] reusable prompts
+- [x] Issue Forms
 
 ## GitHub
-- Protect `main` and `develop`.
-- Create GitHub Project fields defined in `docs/engineering/DEVELOPMENT_PROCESS.md`.
-- Create labels such as `type:feature`, `type:bug`, `type:security`, area/security-impact labels as desired.
-- Verify custom agents appear after these files are committed to the default branch.
-- Configure repository MCP servers only after reviewing ADR-007.
+- [x] repository created
+- [x] `develop` default branch
+- [x] `main` and `develop` protection/rulesets
+- [x] GitHub Project created
+- [x] Status configured:
+  - Backlog
+  - Ready
+  - In Progress
+  - In Review
+  - Security Review
+  - QA
+  - Blocked
+  - Done
+- [x] Work Type:
+  - Epic
+  - Feature
+  - Task
+  - Bug
+  - Security
+- [x] Area:
+  - Frontend
+  - Backend
+  - Database
+  - AI / RAG
+  - Infrastructure
+  - Cross-Cutting
+- [x] Priority:
+  - P0 – Critical
+  - P1 – High
+  - P2 – Medium
+  - P3 – Low
+- [x] Security Impact:
+  - None
+  - Low
+  - Medium
+  - High
+- [x] Estimate:
+  - XS
+  - S
+  - M
+  - L
+  - XL
+- [x] Iteration field configured with two-week cadence
+- [x] labels:
+  - agent:architect
+  - agent:frontend
+  - agent:backend
+  - agent:security-fe
+  - agent:security-be
+  - agent:qa
+  - agent:devops
+  - needs-human
 
-## Supabase
-- Create dedicated Test project.
-- Create dedicated Production project.
-- Configure environment-specific public keys/URLs.
-- Configure server-side secrets separately.
-- Do not grant agent direct Production write access.
+## Supabase Test
+- [x] project created
+- [x] renamed/displayed as `personal-growth-test`
+- [x] Frankfurt region
+- [x] GitHub repository connected
+- [x] Data API enabled
+- [x] automatic exposure of new tables disabled
+- [x] automatic RLS enabled
+- [x] GitHub Copilot cloud-agent MCP configured
+- [x] scoped token limited to Test
+- [x] MCP authentication tested successfully
+
+## Supabase Production
+- [ ] create separate Production project
+- [ ] separate credentials/secrets
+- [ ] production deployment process
+
+Current state: deferred because the account has reached the free-plan project limit.
+
+## VS Code
+- [ ] verify custom agents appear in Copilot Agent mode
+- [ ] start workspace Supabase MCP and complete OAuth
+- [ ] verify Supabase MCP tools are visible in VS Code
+
+## Application scaffold
+- [ ] Expo project
+- [ ] Expo Router
+- [ ] TypeScript strict
+- [ ] NativeWind
+- [ ] TanStack Query
+- [ ] local cache adapter
+- [ ] initial tests/lint/typecheck
 
 ## Vercel
-- Connect repository.
-- Map Test/Preview deployments to Test Supabase variables.
-- Map Production deployment to Production Supabase variables.
+- [ ] configure after Web scaffold exists
+- [ ] Test/Preview environment
+- [ ] Production environment
 
-## Expo / EAS
-- Initialize only through the approved bootstrap ticket.
-- Configure preview/test and production build profiles.
-- Store environment-specific values in approved EAS environment/secret configuration.
+## EAS
+- [ ] configure after Expo scaffold exists
+- [ ] preview profile
+- [ ] production profile
 
-## MCP
-- GitHub MCP: grant only role-required tools.
-- Supabase MCP: project-scope to Test for agent work.
-- Reviewer/Architect/Security BE should use read-only access when needed.
-- No Production write MCP for agents.
-
-## Before first implementation ticket
-- Foundation docs committed.
-- `.github/` committed.
-- Required GitHub Project/labels created.
-- Test environment credentials available.
-- Production remains isolated.
+## First development loop
+- [ ] Planner creates first Epic
+- [ ] first implementation ticket is Ready
+- [ ] implementation branch
+- [ ] PR
+- [ ] Reviewer
+- [ ] Security gate when required
+- [ ] QA
+- [ ] merge to develop

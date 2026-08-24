@@ -1,14 +1,23 @@
-# Review Ticket Prompt
+---
+mode: agent
+description: Review an implementation against its ticket, architecture, security routing, and tests.
+---
 
-Review the active ticket implementation. Do not implement fixes unless the active ticket explicitly assigns remediation to this role.
+Act as Reviewer.
 
-Read:
-- ticket and acceptance criteria
+Review:
+- ticket acceptance criteria
 - diff
-- relevant tests
-- governing PRD/HLD/LLD/ADRs
-- applicable repository rules
+- AGENTS.md
+- relevant architecture/rules
 
-Return the Reviewer output contract from `docs/engineering/DEVELOPMENT_PROCESS.md`.
+Return:
+- Blockers
+- Important findings
+- Suggestions
+- Missing tests
+- Security review requirement
+- QA readiness
+- Final verdict: APPROVE | CHANGES_REQUIRED | BLOCKED
 
-Focus on correctness, scope, architecture, regressions, error paths, and missing tests.
+Do not implement unrelated enhancements.

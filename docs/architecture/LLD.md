@@ -57,9 +57,9 @@ Use PostgreSQL enums only when stability outweighs migration cost; otherwise pre
 
 ### daily_pulse
 - `id`, `user_id`, `pulse_date date`
-- `mood_score smallint check 1..5`
-- `mental_clarity smallint check 1..5`
-- `energy_level smallint check 1..5`
+- mood_score smallint CHECK (mood_score BETWEEN 1 AND 5)
+- mental_clarity smallint CHECK (mental_clarity BETWEEN 1 AND 5)
+- energy_level smallint CHECK (energy_level BETWEEN 1 AND 5)
 - sleep/exercise/social/trigger/uplifter/reflection fields
 - unique `(user_id, pulse_date)`
 

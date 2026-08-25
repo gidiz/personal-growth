@@ -1,5 +1,5 @@
 ---
-applyTo: "**/*.{test,spec}.{ts,tsx},tests/**/*,e2e/**/*,supabase/tests/**/*"
+applyTo: "**/*.test.ts,**/*.test.tsx,**/*.spec.ts,**/*.spec.tsx,tests/**/*,e2e/**/*,supabase/tests/**/*"
 ---
 
 # Test Instructions

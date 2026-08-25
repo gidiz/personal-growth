@@ -111,7 +111,7 @@ Only reviewed decisions (`reviewed_at is not null`) enter the initial semantic r
 - `attempt_count integer not null default 0 check (attempt_count >= 0)`
 - `max_attempts integer not null default 3 check (max_attempts between 1 and 10)`
 - `classification_confidence numeric nullable check (classification_confidence between 0 and 1)`
-- `routed_entity_type text nullable check (routed_entity_type is null or routed_entity_type in ('GOAL','MOOD_LOG','INSIGHT','CHALLENGE','DECISION'))`
+- `routed_entity_type text nullable check (routed_entity_type is null or routed_entity_type in ('GOAL','DAILY_PULSE','INSIGHT','CHALLENGE','DECISION'))`
 - `routed_entity_id uuid nullable`
 - `requires_confirmation boolean not null default false`
 - retry/error timestamps and codes
@@ -124,6 +124,22 @@ Retry behavior:
 - low-confidence routing -> `AWAITING_CONFIRMATION`
 - original capture is not silently discarded
 
+### Routing targets
+
+`routed_entity_id` resolves against the table for its `routed_entity_type`:
+
+| `routed_entity_type` | target table |
+| --- | --- |
+| `GOAL` | `daily_goals` |
+| `DAILY_PULSE` | `daily_pulse` |
+| `INSIGHT` | `insights` |
+| `CHALLENGE` | `challenge_logs` |
+| `DECISION` | `decision_logs` |
+
+`DAILY_PULSE` resolves to the `daily_pulse` row for the capture's date, creating that row when absent. No separate mood-log table exists.
+
+A `DAILY_PULSE` route that would change an already-populated structured column — `mood_score`, `mental_clarity`, `energy_level`, or the sleep/exercise/social fields — must be held as `AWAITING_CONFIRMATION` regardless of classification confidence. AI may populate only columns that are still null unless the user confirms the overwrite.
+
 ## 4. Vector search
 
 Enable `vector`.
@@ -134,7 +150,11 @@ Initial RPCs:
 - `match_reviewed_decisions(...)`
 - `match_periodic_reviews(...)`
 
-All search functions must preserve user isolation, exclude STALE/FAILED embeddings, and retain lifecycle metadata needed for evaluation/debugging. Decision retrieval includes reviewed decisions only.
+All search functions must preserve user isolation, accept only rows with `embedding_status = 'READY'`, and retain the lifecycle metadata needed for evaluation/debugging. `PENDING`, `STALE` and `FAILED` rows never enter a retrieval result.
+
+Corpus filters:
+- `match_challenges` returns only challenges with `status = 'RESOLVED'`.
+- `match_reviewed_decisions` returns only decisions with `reviewed_at is not null`.
 
 ## 5. Client data access
 
@@ -153,11 +173,19 @@ Adapters:
 
 ### OCR / vision flow
 1. client uploads source through an authenticated path
-2. server-side processing invokes the OCR/vision adapter
-3. extracted text is schema-validated
-4. routing receives normalized text + provenance
-5. low-confidence routing requires user confirmation
-6. source retention follows privacy/cleanup policy
+2. the server validates the request before any adapter runs:
+   - the caller is authenticated and owns the target record
+   - the declared content type is on an explicit allowlist and matches the actual bytes
+   - the object size is within a configured maximum
+   - the storage path resolves to an object owned by the authenticated user
+   - ownership is derived from the authenticated identity, never from a client-supplied `user_id`, storage path or metadata field
+3. server-side processing invokes the OCR/vision adapter only after validation succeeds
+4. extracted text is schema-validated before persistence
+5. routing receives normalized text + provenance
+6. low-confidence routing requires user confirmation
+7. source retention follows privacy/cleanup policy
+
+A request that fails validation is rejected without invoking a provider adapter.
 
 AI outputs must be schema-validated before persistence. Confidence alone is not authorization to overwrite user-owned structured data.
 

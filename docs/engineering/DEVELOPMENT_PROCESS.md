@@ -23,12 +23,29 @@ Estimate: XS / S / M / L / XL
 
 Iteration is the native GitHub two-week planning field, not a retry counter.
 
-## 3. Gate result contract
+## 3. Definition of Ready
+
+`Ready` is a gate, not a label. A non-Epic ticket must not enter `Ready` unless all of the following hold:
+
+- the outcome or problem is stated clearly
+- scope and out-of-scope are defined
+- acceptance criteria are testable
+- Area is assigned
+- Security Impact is assigned
+- dependencies and risks are known
+- the relevant PRD/HLD/LLD/ADR references are identified
+- `XL` work is decomposed, or the `XL` estimate is explicitly approved by a human
+
+A ticket that fails any item stays in `Backlog` for Planner refinement. An unresolved product or architecture question moves the ticket to `Blocked` with `needs-human` rather than into `Ready`.
+
+## 4. Gate result contract
 
 ### Reviewer
 - APPROVE
 - CHANGES_REQUIRED
 - BLOCKED
+
+Reviewer is review-only. Required fixes are reported back to the implementing agent. Reviewer does not modify implementation it will later approve unless a human explicitly assigns remediation to Reviewer.
 
 ### Security
 - PASS
@@ -46,15 +63,15 @@ Unresolved Critical/High findings block merge. Unresolved Medium findings block 
 
 A QA failure includes failed criterion/regression, reproduction evidence, expected behavior, and recommended routing.
 
-## 4. Security routing
+## 5. Security routing
 
 - None / Low: normal review + QA unless escalated
 - Medium / High: Security Review mandatory
 - Frontend impact: Security FE
-- Backend/Database/AI/Infrastructure impact: Security BE
+- Backend/Database/AI/RAG/Infrastructure impact: Security BE
 - Cross-Cutting: both when applicable
 
-## 5. Automated correction budget
+## 6. Automated correction budget
 
 Use one shared correction budget across all required gates:
 
@@ -69,7 +86,7 @@ After three failed correction cycles:
 - add `needs-human`
 - summarize unresolved blockers and failed gates
 
-## 6. Branch and PR flow
+## 7. Branch and PR flow
 
 1. branch from `develop`
 2. implement one coherent ticket
@@ -79,7 +96,7 @@ After three failed correction cycles:
 6. Reviewer / Security / QA gates
 7. squash merge unless another strategy is explicitly required
 
-## 7. Database changes
+## 8. Database changes
 
 1. create migration file
 2. review SQL
@@ -90,6 +107,6 @@ After three failed correction cycles:
 
 Never validate a migration with Production credentials or private Production user data.
 
-## 8. Learning output
+## 9. Learning output
 
 For meaningful tickets, include architecture touched, files changed, validation performed, and one or two key technical lessons.

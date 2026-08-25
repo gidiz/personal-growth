@@ -1,5 +1,5 @@
 ---
-applyTo: "app/**/*.{ts,tsx},components/**/*.{ts,tsx},hooks/**/*.{ts,tsx}"
+applyTo: "app/**/*.ts,app/**/*.tsx,components/**/*.ts,components/**/*.tsx,hooks/**/*.ts,hooks/**/*.tsx"
 ---
 
 # Frontend Instructions

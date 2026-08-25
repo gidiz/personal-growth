@@ -90,8 +90,10 @@ Reviewed decisions enter Personal Memory.
 
 ### Quick Capture
 Text / voice / camera-book image.
-AI routes to GOAL / MOOD_LOG / INSIGHT / CHALLENGE / DECISION.
+AI routes to GOAL / DAILY_PULSE / INSIGHT / CHALLENGE / DECISION.
+`DAILY_PULSE` targets the existing Daily Pulse record for the capture's day. There is no separate mood-log entity.
 Routing is reversible/correctable. Low-confidence routing requires confirmation.
+A capture routed to `DAILY_PULSE` may propose or prefill values, but must never silently overwrite a mood, mental clarity, energy or other structured value the user already entered. Any proposed change that would overwrite existing structured user input requires explicit user confirmation.
 AI-processing failure must preserve retryable source data/status.
 
 ### Trends

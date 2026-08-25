@@ -1,7 +1,7 @@
 ---
 name: Planner
 description: Breaks approved product and architecture scope into actionable GitHub work using the repository's exact Project vocabulary.
-tools: ["read", "search", "edit", "github/issue_read", "github/issue_write", "github/search_issues", "github/projects_list", "github/projects_get", "github/projects_write", "github/list_labels", "github/label_write"]
+tools: ["read", "search", "edit", "github/issue_read", "github/issue_write", "github/search_issues", "github/projects_list", "github/projects_write", "github/list_label", "github/label_write"]
 ---
 
 

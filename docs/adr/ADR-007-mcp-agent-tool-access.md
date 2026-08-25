@@ -32,11 +32,21 @@ Custom agents narrow this further:
 The Supabase token is scoped to `personal-growth-test`.
 No Production MCP write access is configured.
 
-## GitHub tools
-Custom agents must list exact GitHub MCP tools rather than `github/*`.
+### Planner GitHub tools
 
-Review-only roles receive only read operations such as `issue_read` and `pull_request_read`.
-DevOps receives read-only Actions inspection by default; production-affecting triggers require explicit release authorization and a separately reviewed capability change.
+The Planner Agent uses the following GitHub MCP tools:
+
+- `issue_read`
+- `issue_write`
+- `search_issues`
+- `projects_list`
+- `projects_write`
+- `list_label`
+- `label_write`
+
+Tool identifiers must match the official GitHub MCP Server names exactly.
+Any change to this allowlist requires updating both ADR-007 and
+`.github/agents/planner.agent.md`.
 
 ## Secrets
 GitHub cloud-agent credentials live in Agents secrets.

@@ -22,7 +22,7 @@
 - [x] scoped Test token
 - [x] cloud-agent MCP auth/connectivity verified
 - [ ] update repository-level MCP config from wildcard to explicit six-tool allowlist in `.github/MCP_CONFIGURATION.md`
-- [ ] re-run read-only MCP verification after allowlist update
+- [x] read-only MCP verification passed after allowlist update
 
 ## Supabase Production
 - [ ] create later; currently deferred by free-plan project limit

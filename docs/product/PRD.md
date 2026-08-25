@@ -1,92 +1,204 @@
 # PRD — Personal Growth, Mental Health & Retrospective OS
 
-## 1. Product vision
+**Status:** Draft v1.1
+**Owner:** Product
+**Product type:** Cross-platform personal intelligence / retrospective system
+**Platforms:** Web, iOS, Android
 
-A unified, low-friction personal growth system that combines daily execution, emotional and physical baseline tracking, long-term learning capture, challenge/problem reflection, decision journaling, multimodal capture, and AI-assisted retrieval and retrospectives.
+---
 
-The product should help a user answer not only “what do I need to do today?” but also what patterns affect mood/energy, what was learned, what worked previously, which decisions were good in hindsight, and whether meaningful progress is happening.
+## 1. Product Vision
 
-## 2. Core user problems
+Build a personal operating system that helps a user capture what happens in daily life, preserve useful knowledge and decisions, identify patterns over time, and reuse past experience when it becomes relevant.
 
-Today these needs are often fragmented across task managers, notes, mood trackers, book highlights, flashcard apps, journals, voice notes, and spreadsheets. Fragmentation creates friction and prevents long-term pattern recognition.
+The product is not primarily a task manager, journal, mood tracker, or knowledge base. Those are modules inside a larger system.
 
-## 3. Product principles
+The core value proposition is:
 
-1. Capture must be fast.
-2. Personal data is private by default.
-3. Reflection should be structured but lightweight.
-4. AI should assist organization and retrieval, not become the source of truth.
-5. The system should work well on Web, iOS, and Android.
-6. Hebrew RTL and English LTR must be first-class.
-7. The app must remain useful even when AI features are unavailable.
-8. AI classifications must remain reviewable and correctable by the user.
-9. Trend reporting must use observational language; association must not be presented as causation.
+> **Capture → Remember → Connect → Reflect → Learn → Act**
 
-## 4. MVP functional areas
+The product succeeds when the value returned to the user becomes substantially greater than the effort required to feed the system.
 
-### A. Daily Pulse
-Track mood 1–5, mental clarity 1–5, energy 1–5, sleep hours, sleep quality, exercise, social connection, negative triggers, uplifters, and end-of-day reflection.
+## 2. Product Principles
 
-### B. Anchor Goals
-Up to three meaningful daily goals with: TODO, IN_PROGRESS, DONE, CANCELLED.
+### Low Friction
+Daily use should require minimal effort. The typical Daily Pulse should be completable in under 30 seconds.
 
-### C. Knowledge Hub
-Books, courses, podcasts, and articles. Track progress, status, takeaways, page/source metadata, tags, and spaced-repetition candidates.
+### AI Organizes; User Owns
+AI may classify, extract, summarize and retrieve. The user can inspect, undo and correct AI-generated classifications. Low-confidence routing requires confirmation.
 
-### D. Skills
-Track baseline level 1–10, current level 1–10, and proof-of-work links.
+### Evidence Before Claims
+Analytics describe associations rather than imply causation.
 
-### E. Challenges
-Record problem statement, action plan, status, resolution, and lessons learned.
+### Privacy by Design
+Access control, data minimization and secret isolation are first-class requirements.
 
-Statuses: OPEN, TESTING_SOLUTION, RESOLVED, STALLED.
+### Local Responsiveness
+Common interactions should feel immediate even when network latency exists.
 
-### F. Decision Journal
-Record decision, rationale, assumptions, expected outcome, review date, and actual outcome.
+### Accessibility
+Core Web flows must be keyboard accessible, controls must have accessible labels/semantics, meaning must not rely on color alone, and Hebrew RTL / English LTR are first-class.
 
-### G. Quick Capture
-Support text, voice, and camera/OCR.
+## 3. Core Product Loop
 
-AI may route captures into:
-- GOAL
-- MOOD_LOG
-- INSIGHT
-- CHALLENGE
-- DECISION
+### Daily
+1. Select up to three Anchor Goals.
+2. Capture thoughts, insights or problems using text, voice or camera.
+3. Complete a short Daily Pulse.
+4. Optionally leave an end-of-day reflection.
+5. System organizes and stores the information without silently discarding source capture.
 
-Routing requirements:
-- routing must be reversible/correctable
-- low-confidence classifications require user confirmation before final structured persistence
-- failed processing must preserve the original capture when safe to do so
-- classification confidence must be available to the routing workflow
-- AI routing never silently discards the user's source input
+### Periodic
+1. Surface trends and historical insights.
+2. Review open challenges and decisions due for review.
+3. Complete guided weekly/monthly retrospective.
+4. Save lessons into Personal Memory.
+5. Reuse lessons in future semantic search.
 
-### H. Trends
-Examples: mood vs sleep, mood vs exercise, completion rate vs energy, weekly/monthly retrospectives.
+## 4. Functional Scope
 
-Trend language must describe observed associations, not causal claims. Where sample size or evidence is weak, the UI should say so rather than overstate a pattern.
+### Daily Pulse
+- mood score 1–5
+- mental clarity 1–5
+- energy 1–5
+- sleep hours
+- sleep quality: POOR / FAIR / GOOD / EXCELLENT
+- exercise
+- social connection
+- negative triggers
+- uplifters
+- reflection text/audio
 
-### I. Semantic Brain Search
-Natural-language questions over user-owned Personal Memory.
+### Anchor Goals
+Maximum three daily goals.
+Statuses: TODO / IN_PROGRESS / DONE / CANCELLED.
 
-Initial retrieval corpus:
+### Knowledge Hub
+Book / Course / Podcast / Article with progress, status, insights/quotes, source metadata/page, camera/OCR capture, tags, embeddings and resurfacing.
+
+### Skills
+Skill name, baseline/current level 1–10 and proof-of-work links.
+
+### Challenges
+Problem/context/action plan/status/resolution/lessons.
+Statuses: OPEN / TESTING_SOLUTION / RESOLVED / STALLED.
+Resolved challenges enter Personal Memory.
+
+### Decision Journal
+Title/context/alternatives/assumptions/rationale/expected outcome/review due date/actual outcome/lessons.
+Reviewed decisions enter Personal Memory.
+
+### Quick Capture
+Text / voice / camera-book image.
+AI routes to GOAL / MOOD_LOG / INSIGHT / CHALLENGE / DECISION.
+Routing is reversible/correctable. Low-confidence routing requires confirmation.
+AI-processing failure must preserve retryable source data/status.
+
+### Trends
+Initial associations include mood/sleep, mood/exercise, energy/goal completion, clarity/sleep and social connection/mood.
+Wording is observational, not causal, and weak evidence/sample sizes must be communicated.
+
+### Retrospectives
+Weekly and monthly in MVP; quarterly later.
+Surface completed goals, mood/energy, triggers/uplifters, insights, unresolved challenges and decisions due for review.
+
+### Semantic Brain Search
+Natural-language queries over user-owned Personal Memory:
 - insights
 - resolved challenge lessons
 - reviewed decisions
 - periodic reviews
 
-Example: “What helped me last time I felt overwhelmed and stuck?”
+Results should link to underlying records and communicate uncertainty when evidence is weak.
 
-## 5. Non-goals for early MVP
+## 5. MVP
 
-- social network
-- clinician-facing diagnosis
-- medical decision support
-- causal health conclusions from personal correlations
-- public sharing
-- complex team collaboration
-- autonomous production changes by AI agents
+Included:
+- Authentication
+- Daily Pulse
+- Three Anchor Goals
+- Text/voice capture
+- camera/OCR capture path
+- Insights
+- Challenges
+- Basic Decision Journal
+- Weekly Review
+- Basic Trends
+- Semantic Search
+- Local/Test/Production architecture (Production provisioning may be deferred operationally)
 
-## 6. Success criteria for first usable release
+Deferred:
+- sophisticated spaced repetition
+- advanced skill matrix
+- predictive recommendations
+- complex analytics dashboards
+- multi-user collaboration
+- advanced offline merge/conflict algorithms
+- broad social features
 
-A user can authenticate, complete a Daily Pulse, manage up to three daily goals, save knowledge items and insights, log a challenge or decision, find prior Personal Memory semantically, view at least one useful observational trend, complete a weekly review, and use the experience on Web and at least one mobile platform.
+## 6. Non-Functional Requirements
+
+### Performance
+- optimistic/local updates for common interactions
+- avoid blocking routine UI actions on AI processing
+- lazy-load expensive analytics where practical
+
+### Reliability
+- user capture must not disappear because AI processing fails
+- failed processing retains retryable source data/status
+- migrations are version controlled
+- retry loops are bounded
+
+### Security
+- strict RLS on user-owned Supabase data
+- client is untrusted
+- caller-supplied `user_id` is never authorization
+- no AI provider secret or Supabase service-role credential in client code
+- sensitive content is not unnecessarily logged
+- uploads are validated server-side
+
+### Accessibility
+- keyboard-accessible Web UI
+- accessible labels, roles and controls
+- visible focus
+- no color-only semantics
+- RTL Hebrew and LTR English support
+
+### Portability
+- shared application code across Web/iOS/Android where reasonable
+- platform adapters for storage/native capabilities
+
+## 7. Product Success Metrics
+
+- Daily Pulse completion rate
+- median Daily Pulse completion time
+- captures per active week
+- percentage of AI-routed captures corrected by the user
+- weekly retrospective completion rate
+- semantic search usefulness feedback
+- percentage of active users revisiting historical content
+
+North-star qualitative outcome:
+
+> “The system remembered something from my past that was useful to me right now.”
+
+## 8. Release Phases
+
+1. Foundation — Auth/schema/RLS/pgvector/base client structure
+2. Application Shell — navigation, RTL/LTR, NativeWind, UI primitives, loading/error states
+3. Daily Core Loop — Daily Pulse, Anchor Goals, reflection, optimistic/local persistence
+4. Personal Memory — Knowledge, Insights, Challenges, Decisions
+5. Zero-Friction Capture — voice, camera/OCR, AI classification, embeddings
+6. Personal Intelligence — Trends, retrospectives, semantic search, RAG synthesis
+
+## 9. Product Definition of Done
+
+A feature is product-complete only when:
+- acceptance criteria are satisfied
+- expected error/failure states are covered
+- required accessibility behavior works
+- Hebrew RTL and English LTR impact has been considered
+- privacy/security implications were reviewed where applicable
+- AI/source-data failure behavior preserves user input where applicable
+- analytics wording does not overclaim causation
+- it passes the engineering Definition of Done in `docs/engineering/DEVELOPMENT_PROCESS.md`

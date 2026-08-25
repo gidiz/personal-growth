@@ -75,3 +75,18 @@ This does not change the architecture:
 - production remains a separate environment
 - separate credentials are required
 - agents do not get direct write access to production
+
+## Data API migration rule
+
+Because automatic exposure of new tables is disabled, a migration that introduces a resource
+needed by the authenticated client must also explicitly configure the required Data API/PostgREST
+exposure and grants.
+
+A schema migration is not considered validated until:
+1. the table/function exists in Test
+2. RLS/policies are correct
+3. required client roles have only the intended grants
+4. an authenticated client path succeeds
+5. unauthorized/cross-user access fails
+
+Server-only tables/functions should remain unexposed when client access is unnecessary.

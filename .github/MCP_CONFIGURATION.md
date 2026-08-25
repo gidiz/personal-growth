@@ -15,7 +15,7 @@ Use:
       "type": "http",
       "url": "https://mcp.supabase.com/mcp?project_ref=ehppewofypspcfzboqvm&features=database,docs",
       "headers": {
-        "Authorization": "Bearer $COPILOT_MCP_SUPABASE_TEST_ACCESS_TOKEN"
+        "Authorization": "Bearer ${COPILOT_MCP_SUPABASE_TEST_ACCESS_TOKEN}"
       },
       "tools": [
         "list_tables",

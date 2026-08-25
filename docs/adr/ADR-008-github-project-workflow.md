@@ -1,18 +1,27 @@
-# ADR-008 — GitHub Project workflow
+# ADR-008 — GitHub Project Workflow Vocabulary
 
-## Status
-Accepted
+**Status:** Accepted
+**Extends:** ADR-005 — GitHub-Centered Agent Delivery
 
 ## Decision
-GitHub Issues + GitHub Project are the operational work system.
+Keep GitHub Issues + GitHub Project as the work-tracking source of truth, using the following canonical vocabulary.
 
-Work Type: Epic / Feature / Task / Bug / Security
+Work Type:
+Epic / Feature / Task / Bug / Security
 
-Status: Backlog / Ready / In Progress / In Review / Security Review / QA / Blocked / Done
+Status:
+Backlog / Ready / In Progress / In Review / Security Review / QA / Blocked / Done
 
-Additional fields: Area / Priority / Security Impact / Estimate / Iteration
+Additional fields:
+Area / Priority / Security Impact / Estimate / Iteration
 
-Agent roster: Product / Architect / Planner / Frontend / Backend / Reviewer / Security FE / Security BE / QA / DevOps
+Hierarchy:
+Epic -> Feature / Task / Bug / Security
+
+Agent roster is the ADR-005 roster plus **DevOps**.
 
 ## Consequences
-Do not duplicate Work Type as labels unless required. DevOps work is first-class and routes through the same ticket/review process. Project vocabulary stays synchronized with `AGENTS.md`.
+- do not use Story as a default hierarchy layer
+- do not duplicate Work Type as labels unless a GitHub feature requires it
+- Iteration means the GitHub two-week planning period, not retry count
+- review retries use the term Review Cycle

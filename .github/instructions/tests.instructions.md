@@ -1,12 +1,15 @@
 ---
-applyTo: "**/*.{test,spec}.{ts,tsx},tests/**/*,e2e/**/*"
+applyTo: "**/*.{test,spec}.{ts,tsx},tests/**/*,e2e/**/*,supabase/tests/**/*"
 ---
 
 # Test Instructions
 
-- deterministic tests.
-- behavior-focused assertions.
-- regression tests for bugs.
-- RLS tests for security-sensitive DB changes.
-- Playwright for important web end-to-end flows.
-- cover RTL/cross-platform behavior when relevant.
+- use deterministic, synthetic or purpose-built Test fixtures.
+- never use private Production user data or Production credentials for ordinary tests.
+- add regression tests for bugs.
+- for RLS/auth changes, include negative cross-user access tests.
+- validate storage ownership when storage policies change.
+- validate vector/RPC user isolation when semantic-search functions change.
+- Playwright is preferred for important Web end-to-end flows.
+- cover RTL/LTR and cross-platform behavior when relevant.
+- redact sensitive content from logs, snapshots, screenshots and artifacts.

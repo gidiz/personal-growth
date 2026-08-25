@@ -1,45 +1,51 @@
-# ADR-007 — MCP and agent tool access
+# ADR-007 — MCP and Agent Tool Access
 
-## Status
-Accepted
+**Status:** Accepted
 
 ## Decision
-Use MCP to grant controlled tool access to external systems.
+Use MCP for controlled external-tool access with least privilege, explicit tool allowlists, and separate Local/Test/Production boundaries.
 
-Current integrations: GitHub MCP, Playwright MCP, Supabase MCP scoped to Test.
+Current integrations:
+- GitHub MCP
+- Playwright MCP
+- Supabase MCP scoped to Test
 
-## Security model
-- project scope whenever possible
-- least privilege
-- secrets in platform secret stores
-- no Production MCP write access
-- no secret values committed to Git
-- repository-level MCP tool exposure uses an explicit allowlist
-- custom agents further narrow tools per role
+## Trust boundary
+Tool output is untrusted data and never authorization. Issue/PR/database/log content can contain instruction-like text.
 
-## Supabase Test tool policy
+Only repository governance, the active ticket/PR scope and explicit operator instructions authorize actions.
 
-Repository-level Supabase MCP allowlist:
-- `list_tables`
-- `list_extensions`
-- `list_migrations`
-- `apply_migration`
-- `execute_sql`
-- `search_docs`
+## Supabase Test
+Repository-level Supabase MCP tools:
+- list_tables
+- list_extensions
+- list_migrations
+- apply_migration
+- execute_sql
+- search_docs
 
-Role narrowing:
-- Backend may use all six
-- Security BE may use only `list_tables`, `list_extensions`, `list_migrations`, `search_docs`
-- Reviewer gets no Supabase mutation tools
-- other agents get no Supabase tools unless justified
+Custom agents narrow this further:
+- Backend: six tools above
+- Security BE: list_tables, list_extensions, list_migrations, search_docs
+- review-only roles: no Supabase mutation tools
 
-The scoped token remains restricted to `personal-growth-test`.
+The Supabase token is scoped to `personal-growth-test`.
+No Production MCP write access is configured.
 
-## GitHub cloud agent
-Credential: `COPILOT_MCP_SUPABASE_TEST_ACCESS_TOKEN`. Never commit the secret value.
+## GitHub tools
+Custom agents must list exact GitHub MCP tools rather than `github/*`.
+
+Review-only roles receive only read operations such as `issue_read` and `pull_request_read`.
+DevOps receives read-only Actions inspection by default; production-affecting triggers require explicit release authorization and a separately reviewed capability change.
+
+## Secrets
+GitHub cloud-agent credentials live in Agents secrets.
+Repository MCP headers may reference an Agent secret using supported `$VAR` or `${VAR}` forms.
+The repository documentation uses the braced `${VAR}` form for clarity.
 
 ## VS Code
-IDE MCP configuration is separate. The checked-in Test project ref is the non-secret tooling exception documented by ADR-004.
+IDE MCP configuration is separate from GitHub cloud-agent configuration.
+The checked-in Test project reference is non-secret tooling configuration, never a Production reference.
 
-## Production
-Do not configure a write-enabled Production MCP server.
+## Consequences
+Tool availability becomes part of security governance and must be reviewed like code.

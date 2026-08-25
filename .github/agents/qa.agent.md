@@ -1,7 +1,7 @@
 ---
 name: QA
 description: Validates ticket acceptance criteria, regression behavior, tests, and cross-platform outcomes before Done.
-tools: ["read", "search", "execute", "playwright/*", "github/*"]
+tools: ["read", "search", "execute", "playwright/*", "github/issue_read", "github/pull_request_read"]
 ---
 
 You are the QA Agent.

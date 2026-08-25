@@ -1,18 +1,25 @@
-# Foundation Sync — Review Cycle 1 Fixes
+# Foundation Sync — Review Cycle 2 Fixes
 
-This package incorporates the first Copilot PR review.
+This revision addresses the second Copilot PR review.
 
-Accepted corrections include: restored domain glossary, complete Reviewer/Security/QA gate contracts, shared 3-cycle correction budget, Test-only data guardrails, explicit `.vscode/mcp.json` Test-only exception, DevOps role alignment, provider-agnostic AI boundary, `bugfix/*` vocabulary, OCR/vision design, capture retry/confidence lifecycle, full RAG corpus contracts, constrained goal/challenge states, embedding lifecycle metadata, DECISION routing, low-confidence confirmation, non-causal trend language, bug/security Issue Form fields, QA/DevOps casing, explicit Supabase MCP allowlist, and read-only Security BE tools.
+Key corrections:
+- exact GitHub MCP tools replace `github/*` wildcards
+- tool/MCP output is explicitly untrusted data
+- Supabase/Test instructions cover AI/data/server paths
+- Supabase tests receive the test/RLS/privacy instruction set
+- ticket creation records parent Epic/sub-issue relationship
+- negative security tests cover cross-user RLS, Storage ownership, RPC/vector isolation and caller-supplied identity
+- Web accessibility restores keyboard, semantic-label/role, focus and no-color-only requirements
+- Anchor Goal `position` is NOT NULL
+- semantic retrieval accepts only READY embeddings
+- review-cycle count has a persistent GitHub issue marker
+- engineering Definition of Done is explicit
+- Data API exposure/grants are part of migration validation
+- PRD restores the previously accepted low-friction, reliability, accessibility, privacy, metrics and product-DoD constraints
+- duplicate ADR IDs are removed; the original ADR-001..006 series remains canonical
+- ADR-007 covers MCP/tool governance
+- ADR-008 extends the original GitHub workflow vocabulary and adds DevOps
 
-Deliberately rejected: adding a redundant `profiles.user_id`. `profiles.id = auth.users.id` is the explicit 1:1 identity-table exception.
-
-## Manual GitHub setting still required
-Update Repository Settings -> Copilot -> MCP servers to match `.github/MCP_CONFIGURATION.md`, replacing `tools: ["*"]` with:
-- list_tables
-- list_extensions
-- list_migrations
-- apply_migration
-- execute_sql
-- search_docs
-
-Then re-run a read-only MCP verification.
+External setup already completed:
+- Supabase MCP repository allowlist updated
+- read-only post-change connectivity test passed

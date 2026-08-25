@@ -66,7 +66,7 @@ Use PostgreSQL enums only when stability outweighs migration cost; otherwise pre
 ### daily_goals
 - `id`, `user_id`, `goal_date date`, `title text`
 - `status text not null check (status in ('TODO','IN_PROGRESS','DONE','CANCELLED'))`
-- `position smallint check (position between 1 and 3)`
+- `position smallint not null check (position between 1 and 3)`
 - unique `(user_id, goal_date, position)`
 
 ### knowledge_items

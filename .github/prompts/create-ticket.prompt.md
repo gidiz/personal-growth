@@ -31,8 +31,9 @@ Output:
 6. Acceptance criteria
 7. Validation plan
 8. Dependencies / risks
-9. Project field values
-10. Agent routing
+9. Parent Epic / sub-issue relationship (or `None` for an Epic)
+10. Project field values
+11. Agent routing
 
 Do not use Story.
 Do not use Type instead of Work Type.

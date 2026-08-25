@@ -46,6 +46,10 @@ Reviewer: no Supabase mutation tools.
 
 GitHub repository MCP settings do not automatically configure the IDE. `.vscode/mcp.json` uses the hosted Supabase Test MCP with interactive OAuth and no committed PAT.
 
+The checked-in server sets `read_only=true`. VS Code has no per-server tool allowlist, so without it default agent mode would inherit `execute_sql` and `apply_migration` against the shared Test project. The read-only default keeps the IDE at least privilege no matter which agent is active.
+
+Apply Test migrations with the Supabase CLI against the versioned files in `supabase/migrations/`, not by editing this configuration. Temporarily removing `read_only=true` is a deliberate local action, must not be committed, and must never target Production.
+
 The hard-coded Test `project_ref` is an explicit non-secret developer-tooling exception under ADR-007.
 
 ## 4. Production

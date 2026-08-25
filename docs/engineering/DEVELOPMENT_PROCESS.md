@@ -100,7 +100,7 @@ After three failed correction cycles:
 
 1. create migration file
 2. review SQL
-3. apply to Test
+3. apply to Test with the Supabase CLI (IDE MCP is read-only)
 4. validate schema/RLS with synthetic or purpose-built Test data
 5. merge migration
 6. later promote the same reviewed migration to Production

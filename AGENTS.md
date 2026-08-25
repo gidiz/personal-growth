@@ -29,7 +29,7 @@ Status: Backlog / Ready / In Progress / In Review / Security Review / QA / Block
 - no autonomous Production direct writes
 
 ## MCP
-Repository-level Supabase MCP uses an explicit allowlist. Custom agents narrow it further. Reviewer/Security roles do not get Supabase mutation tools. Cloud-agent credentials are Agents secrets; VS Code MCP is separate.
+Repository-level Supabase MCP uses an explicit allowlist. Custom agents narrow it further. Reviewer/Security roles do not get Supabase mutation tools. Cloud-agent credentials are Agents secrets; VS Code MCP is separate and read-only, so Test migrations are applied with the Supabase CLI.
 
 ## Security gates
 Security result: PASS | CHANGES_REQUIRED | BLOCKED. Unresolved Critical/High blocks merge; Medium requires remediation or explicit human risk acceptance.

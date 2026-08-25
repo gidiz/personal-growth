@@ -57,5 +57,9 @@ The repository documentation uses the braced `${VAR}` form for clarity.
 IDE MCP configuration is separate from GitHub cloud-agent configuration.
 The checked-in Test project reference is non-secret tooling configuration, never a Production reference.
 
+VS Code applies no per-server tool allowlist, so server configuration is the only scope control that holds for every agent, including default agent mode where no role profile is active. The checked-in IDE server therefore uses `read_only=true`, which executes all queries as a read-only Postgres user.
+
+Consequence: the Backend Agent cannot apply schema changes through IDE MCP. Test migrations are applied with the Supabase CLI from the versioned files in `supabase/migrations/`, which keeps migrations-as-code the only path to schema change. Removing `read_only=true` is a deliberate local action, must not be committed, and must never target Production.
+
 ## Consequences
 Tool availability becomes part of security governance and must be reviewed like code.

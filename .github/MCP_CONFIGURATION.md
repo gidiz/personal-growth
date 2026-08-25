@@ -46,7 +46,7 @@ Reviewer: no Supabase mutation tools.
 
 GitHub repository MCP settings do not automatically configure the IDE. `.vscode/mcp.json` uses the hosted Supabase Test MCP with interactive OAuth and no committed PAT.
 
-The hard-coded Test `project_ref` is an explicit non-secret developer-tooling exception under ADR-004.
+The hard-coded Test `project_ref` is an explicit non-secret developer-tooling exception under ADR-007.
 
 ## 4. Production
 

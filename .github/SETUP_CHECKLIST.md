@@ -1,40 +1,47 @@
-# One-Time Platform Setup
+# Setup Checklist
 
-These steps require platform/account configuration and cannot be completed by repository files alone.
+## Foundation
+
+- [X] PRD/HLD/LLD/ADRs
+- [X] Development Process / AGENTS / rules
+- [X] custom agents / prompts / Issue Forms
 
 ## GitHub
-- Protect `main` and `develop`.
-- Create GitHub Project fields defined in `docs/engineering/DEVELOPMENT_PROCESS.md`.
-- Create labels such as `type:feature`, `type:bug`, `type:security`, area/security-impact labels as desired.
-- Verify custom agents appear after these files are committed to the default branch.
-- Configure repository MCP servers only after reviewing ADR-007.
 
-## Supabase
-- Create dedicated Test project.
-- Create dedicated Production project.
-- Configure environment-specific public keys/URLs.
-- Configure server-side secrets separately.
-- Do not grant agent direct Production write access.
+- [X] `develop` default branch
+- [X] protected `main`/`develop`
+- [X] GitHub Project fields
+- [X] agent-routing labels
+- [X] PR-only protection verified
+- [X] Copilot code review verified
 
-## Vercel
-- Connect repository.
-- Map Test/Preview deployments to Test Supabase variables.
-- Map Production deployment to Production Supabase variables.
+## Supabase Test
 
-## Expo / EAS
-- Initialize only through the approved bootstrap ticket.
-- Configure preview/test and production build profiles.
-- Store environment-specific values in approved EAS environment/secret configuration.
+- [X] `personal-growth-test`, Frankfurt
+- [X] GitHub integration
+- [X] Data API enabled
+- [X] auto-expose new tables disabled
+- [X] automatic RLS enabled
+- [X] scoped Test token
+- [X] cloud-agent MCP auth/connectivity verified
+- [X] update repository-level MCP config from wildcard to explicit six-tool allowlist in `.github/MCP_CONFIGURATION.md`
+- [X] read-only MCP verification passed after allowlist update
 
-## MCP
-- GitHub MCP: grant only role-required tools.
-- Supabase MCP: project-scope to Test for agent work.
-- Reviewer/Architect/Security BE should use read-only access when needed.
-- No Production write MCP for agents.
+## Supabase Production
 
-## Before first implementation ticket
-- Foundation docs committed.
-- `.github/` committed.
-- Required GitHub Project/labels created.
-- Test environment credentials available.
-- Production remains isolated.
+- [ ] create later; currently deferred by free-plan project limit
+
+## VS Code
+
+- [ ] verify custom agents in Agent mode
+- [ ] start workspace Supabase MCP and complete OAuth
+- [ ] verify tools
+
+## Application scaffold
+
+- [ ] Expo / Router / TypeScript / NativeWind / TanStack Query / tests
+
+## Deployment
+
+- [ ] Vercel after Web scaffold
+- [ ] EAS after Expo scaffold

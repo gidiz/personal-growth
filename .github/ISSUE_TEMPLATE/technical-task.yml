@@ -1,6 +1,6 @@
-name: Feature
-description: User-facing product capability.
-title: "[Feature] "
+name: Technical Task
+description: Focused technical or implementation work.
+title: "[Task] "
 body:
   - type: markdown
     attributes:
@@ -49,5 +49,5 @@ body:
   - type: markdown
     attributes:
       value: |
-        Suggested Work Type: **Feature**.
+        Suggested Work Type: **Task**.
         The Planner Agent should set Area, Priority, Security Impact, Estimate, Status, and Iteration in the GitHub Project.

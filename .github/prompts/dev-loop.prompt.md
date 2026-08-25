@@ -1,16 +1,22 @@
-# Dev Loop Prompt
+---
+mode: agent
+description: Run the controlled implementation-review-security-QA loop for one ticket.
+---
 
-Run one iteration of the project's delivery loop for the active ticket.
+1. Verify Ready; move to In Progress.
+2. Implement and validate Local/Test.
+3. Move to In Review; Reviewer returns APPROVE | CHANGES_REQUIRED | BLOCKED.
+4. Reviewer CHANGES_REQUIRED -> fix, increment shared review-cycle counter, re-run required gates.
+5. Medium/High Security Impact -> Security Review; Security returns PASS | CHANGES_REQUIRED | BLOCKED.
+6. Security CHANGES_REQUIRED -> fix, increment the same counter, re-run relevant prior gates.
+7. Move to QA only after required review/security pass.
+8. QA returns PASS | FAIL | BLOCKED.
+9. QA FAIL -> fix, increment the same counter, re-run relevant gates.
+10. Done only after all required gates pass.
 
-1. Determine current stage: Implementation, Review, Security FE, Security BE, or QA.
-2. Perform only that role/stage.
-3. If PASS, identify the next required gate from Security Impact and DEVELOPMENT_PROCESS.
-4. If changes are required, return precise findings to the implementing role.
-5. Increment the ticket iteration only when work returns from a gate to implementation.
-6. At iteration 3 failure, stop and escalate to Architect with:
-   - repeated failure pattern
-   - unresolved requirement/design issue
-   - recommended split/ADR/clarification
+Global budget: `MAX_REVIEW_CYCLES = 3`.
 
-Never skip required Security or QA gates.
-Never modify Production.
+Any BLOCKED result -> Status Blocked + `needs-human` + blocker summary.
+Third failed correction cycle -> same escalation.
+
+Do not confuse review cycles with GitHub Iteration.

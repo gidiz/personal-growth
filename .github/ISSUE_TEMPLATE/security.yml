@@ -1,50 +1,54 @@
-name: Security Remediation
-description: Track an approved security finding remediation
-title: "[SEC] "
-labels: ["type:security"]
+name: Security
+description: Security hardening, vulnerability remediation, or security requirement.
+title: "[Security] "
 body:
-  - type: dropdown
-    id: severity
+  - type: markdown
     attributes:
-      label: Severity
-      options:
-        - CRITICAL
-        - HIGH
-        - MEDIUM
-        - LOW
-    validations:
-      required: true
-  - type: dropdown
-    id: area
-    attributes:
-      label: Area
-      options:
-        - Frontend
-        - Backend
-        - Full
-    validations:
-      required: true
-  - type: textarea
-    id: finding
-    attributes:
-      label: Finding
-    validations:
-      required: true
+      value: |
+        Do not paste secrets, private user data, exploit payloads that expose real data, or Production credentials into this issue.
   - type: textarea
     id: threat
     attributes:
-      label: Threat / Impact
+      label: Threat / weakness
+      description: What trust-boundary weakness or security concern exists?
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Potential impact
+      description: What could an attacker or failure cause?
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Proposed severity
+      options: [Critical, High, Medium, Low, "Unknown / needs triage"]
     validations:
       required: true
   - type: textarea
     id: remediation
     attributes:
-      label: Required Remediation Outcome
+      label: Required remediation outcome
+      description: What security property must be true after the fix?
     validations:
       required: true
   - type: textarea
     id: verification
     attributes:
-      label: Verification / Tests
+      label: Verification plan
+      description: How will Security verify remediation?
     validations:
       required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Affected area / trust boundary
+      description: Frontend, Backend, Database, AI, RAG, Infrastructure, Cross-Cutting.
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        Suggested Work Type: **Security**. Planner sets Area, Priority, Security Impact, Estimate, Status, and Iteration.

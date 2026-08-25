@@ -1,49 +1,51 @@
 name: Bug
-description: Reproducible defect
-title: "[BUG] "
-labels: ["type:bug"]
+description: Existing behavior does not work as intended.
+title: "[Bug] "
 body:
   - type: textarea
     id: observed
     attributes:
-      label: Observed Behavior
+      label: Observed behavior
+      description: What actually happens?
     validations:
       required: true
   - type: textarea
     id: expected
     attributes:
-      label: Expected Behavior
+      label: Expected behavior
+      description: What should happen instead?
     validations:
       required: true
   - type: textarea
-    id: reproduce
+    id: reproduction
     attributes:
-      label: Reproduction Steps
+      label: Reproduction steps
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
     validations:
       required: true
-  - type: dropdown
+  - type: input
     id: environment
     attributes:
       label: Environment
-      options:
-        - Local
-        - Test
-        - Production
-    validations:
-      required: true
-  - type: dropdown
-    id: security
-    attributes:
-      label: Security Impact
-      options:
-        - None
-        - Frontend
-        - Backend
-        - Full
+      description: Web/iOS/Android, browser/device, Local/Test, relevant version.
     validations:
       required: true
   - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Logs, screenshots, error text, or other non-sensitive evidence.
+  - type: textarea
     id: regression
     attributes:
-      label: Regression Test
-      description: What test should prevent recurrence?
+      label: Regression test / validation
+      description: What check should prevent recurrence?
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        Suggested Work Type: **Bug**. Planner sets Area, Priority, Security Impact, Estimate, Status, and Iteration.

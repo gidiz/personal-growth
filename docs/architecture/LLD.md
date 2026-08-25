@@ -1,586 +1,216 @@
-# LLD — Personal Growth, Mental Health & Retrospective OS
+# LLD — Low-Level Design
 
-**Status:** Draft v1.0  
-**Purpose:** Concrete technical design baseline.  
-**Rule:** This document may evolve through ADRs and ticket-specific design notes.
-
----
-
-## 1. Technology Baseline
-
-### Client
-- Expo
-- React Native
-- Expo Router
-- TypeScript
-- NativeWind
-- TanStack Query
-- MMKV-compatible native storage adapter
-- Web storage adapter
-
-### Backend
-- Supabase Auth
-- PostgreSQL
-- Supabase Storage
-- Supabase Edge Functions
-- pgvector
-
-### AI
-Server-side provider adapter supporting:
-- transcription;
-- structured extraction;
-- vision/OCR;
-- embeddings;
-- grounded synthesis.
-
----
-
-## 2. Proposed Repository Layout
+## 1. Repository target structure
 
 ```text
 app/
-├── (auth)/
-│   ├── login.tsx
-│   └── register.tsx
-├── (tabs)/
-│   ├── index.tsx
-│   ├── knowledge/
-│   ├── challenges/
-│   ├── trends.tsx
-│   └── search.tsx
-├── modals/
-│   ├── quick-capture.tsx
-│   └── weekly-review.tsx
-└── _layout.tsx
-
+  (auth)/
+  (tabs)/
+  modals/
+  _layout.tsx
 components/
-├── ui/
-├── daily/
-├── knowledge/
-├── challenges/
-├── capture/
-└── charts/
-
-features/
-├── auth/
-├── daily/
-├── knowledge/
-├── challenges/
-├── decisions/
-├── capture/
-├── analytics/
-└── search/
-
-repositories/
-├── dailyPulse.repository.ts
-├── goals.repository.ts
-├── knowledge.repository.ts
-├── insights.repository.ts
-├── challenges.repository.ts
-└── decisions.repository.ts
-
+  ui/
+  daily/
+  knowledge/
+  challenges/
+  capture/
+  charts/
+hooks/
 lib/
-├── supabase/
-├── storage/
-├── sync/
-├── validation/
-├── analytics/
-└── ai-contracts/
-
+  supabase/
+  ai/
+    transcription.ts
+    vision.ts
+    extraction.ts
+    embeddings.ts
+    synthesis.ts
+  analytics/
 supabase/
-├── migrations/
-└── functions/
-    ├── process-voice/
-    ├── process-image/
-    └── semantic-search/
+  migrations/
+  functions/
 ```
 
----
+## 2. Database conventions
 
-## 3. Database Conventions
+For normal application-owned tables:
+- `id uuid primary key default gen_random_uuid()`
+- `user_id uuid not null references auth.users(id) on delete cascade`
+- timestamps where appropriate
+- explicit foreign keys and indexes
+- RLS enabled
+- explicit user policies
 
-All user-owned tables should use:
+### Identity-table exception
+`profiles` is intentionally 1:1 with `auth.users`. Its ownership key is its primary key: `profiles.id = auth.users.id`. Do not add a duplicate `user_id` column merely to satisfy the generic convention.
 
-```sql
-id uuid primary key default gen_random_uuid(),
-user_id uuid not null references auth.users(id) on delete cascade,
-created_at timestamptz not null default now(),
-updated_at timestamptz not null default now()
-```
+Use PostgreSQL enums only when stability outweighs migration cost; otherwise prefer constrained text with `CHECK`.
 
-Prefer database enums or CHECK constraints for stable domain statuses.
+## 3. Initial schema
 
-All foreign keys should be indexed where query patterns justify it.
-
-All schema changes must be migration files.
-
----
-
-## 4. Core Schema
-
-### 4.1 `profiles`
-
-Fields:
-- `id` UUID, same value as auth user id or explicit user_id mapping
-- display preferences
-- locale
-- timezone
+### profiles
+- `id uuid primary key references auth.users(id) on delete cascade`
+- `display_name text`
+- `locale text`
+- `timezone text`
 - timestamps
+- RLS policy uses `auth.uid() = id`
 
-### 4.2 `daily_pulse`
+### daily_pulse
+- `id`, `user_id`, `pulse_date date`
+- mood_score smallint CHECK (mood_score BETWEEN 1 AND 5)
+- mental_clarity smallint CHECK (mental_clarity BETWEEN 1 AND 5)
+- energy_level smallint CHECK (energy_level BETWEEN 1 AND 5)
+- sleep/exercise/social/trigger/uplifter/reflection fields
+- unique `(user_id, pulse_date)`
 
-Fields:
-- id
-- user_id
-- local_date
-- mood_score 1–5
-- mental_clarity 1–5
-- energy_level 1–5
-- sleep_hours
-- sleep_quality
-- exercise_done
-- social_connection
-- reflection_text
-- trigger tags
-- uplifter tags
-- timestamps
+### daily_goals
+- `id`, `user_id`, `goal_date date`, `title text`
+- `status text not null check (status in ('TODO','IN_PROGRESS','DONE','CANCELLED'))`
+- `position smallint not null check (position between 1 and 3)`
+- unique `(user_id, goal_date, position)`
 
-Constraint:
-- one daily pulse per user/local_date unless product later allows multiple check-ins.
+### knowledge_items
+- `id`, `user_id`, item/source/title/status/progress fields
 
-### 4.3 `daily_goals`
+### insights
+- `id`, `user_id`, optional `knowledge_item_id`, content/source/tags
+- `embedding vector(1536) nullable`
+- `embedding_model text nullable`
+- `embedding_version text nullable`
+- `embedded_at timestamptz nullable`
+- `embedding_status text not null default 'PENDING' check (embedding_status in ('PENDING','READY','STALE','FAILED'))`
 
-Fields:
-- id
-- user_id
-- local_date
-- title
-- status
-- sort_order 0–2
-- timestamps
+### skills_progress
+- `id`, `user_id`, `skill_name`
+- baseline/current levels constrained 1..10
+- proof links
 
-Business rule:
-- max 3 active anchor positions per day.
-- enforce in application and, where practical, database constraints/transaction logic.
+### challenge_logs
+- `id`, `user_id`, problem/action/resolution/lessons fields
+- `status text not null check (status in ('OPEN','TESTING_SOLUTION','RESOLVED','STALLED'))`
+- embedding + model/version/time/status metadata as above
 
-### 4.4 `knowledge_items`
+### decision_logs
+- `id`, `user_id`, title/rationale/assumptions/expected outcome
+- `review_due_date date nullable`
+- `actual_outcome text nullable`
+- `reviewed_at timestamptz nullable`
+- embedding + model/version/time/status metadata
 
-Fields:
-- id
-- user_id
-- type
-- title
-- creator/source
-- status
-- progress_percent
-- metadata jsonb
-- timestamps
+Only reviewed decisions (`reviewed_at is not null`) enter the initial semantic retrieval corpus.
 
-### 4.5 `insights`
+### periodic_reviews
+- `id`, `user_id`, review type/period/summary/wins/challenges/next actions
+- embedding + model/version/time/status metadata
 
-Fields:
-- id
-- user_id
-- knowledge_item_id nullable
-- text
-- page_number nullable
-- tags
-- embedding vector(1536)
-- embedding_status
-- timestamps
+### capture_jobs
+- `id`, `user_id`
+- `capture_type text not null check (capture_type in ('TEXT','VOICE','IMAGE'))`
+- source fields
+- `processing_status text not null check (processing_status in ('PENDING','PROCESSING','AWAITING_CONFIRMATION','COMPLETED','RETRYABLE_FAILURE','PERMANENT_FAILURE'))`
+- `attempt_count integer not null default 0 check (attempt_count >= 0)`
+- `max_attempts integer not null default 3 check (max_attempts between 1 and 10)`
+- `classification_confidence numeric nullable check (classification_confidence between 0 and 1)`
+- `routed_entity_type text nullable check (routed_entity_type is null or routed_entity_type in ('GOAL','DAILY_PULSE','INSIGHT','CHALLENGE','DECISION'))`
+- `routed_entity_id uuid nullable`
+- `requires_confirmation boolean not null default false`
+- retry/error timestamps and codes
 
-Index:
-- HNSW vector index using chosen vector distance operator.
+Retry behavior:
+- retry only `RETRYABLE_FAILURE`
+- increment `attempt_count`
+- never exceed `max_attempts`
+- exhausted retries -> `PERMANENT_FAILURE`
+- low-confidence routing -> `AWAITING_CONFIRMATION`
+- original capture is not silently discarded
 
-### 4.6 `skills_progress`
+### Routing targets
 
-Fields:
-- id
-- user_id
-- skill_name
-- baseline_level
-- current_level
-- evidence_links jsonb
-- timestamps
+`routed_entity_id` resolves against the table for its `routed_entity_type`:
 
-### 4.7 `challenge_logs`
+| `routed_entity_type` | target table |
+| --- | --- |
+| `GOAL` | `daily_goals` |
+| `DAILY_PULSE` | `daily_pulse` |
+| `INSIGHT` | `insights` |
+| `CHALLENGE` | `challenge_logs` |
+| `DECISION` | `decision_logs` |
 
-Fields:
-- id
-- user_id
-- problem_statement
-- action_plan
-- status
-- resolution_notes
-- lessons_learned
-- embedding vector(1536)
-- timestamps
+`DAILY_PULSE` resolves to the `daily_pulse` row for the capture's date, creating that row when absent. No separate mood-log table exists.
 
-### 4.8 `decision_logs`
+A `DAILY_PULSE` route that would change an already-populated structured column — `mood_score`, `mental_clarity`, `energy_level`, or the sleep/exercise/social fields — must be held as `AWAITING_CONFIRMATION` regardless of classification confidence. AI may populate only columns that are still null unless the user confirms the overwrite.
 
-Fields:
-- id
-- user_id
-- title
-- context
-- assumptions
-- alternatives
-- rationale
-- expected_outcome
-- review_due_at
-- actual_outcome
-- lessons_learned
-- reviewed_at
-- embedding nullable
-- timestamps
+## 4. Vector search
 
-### 4.9 `periodic_reviews`
+Enable `vector`.
 
-Fields:
-- id
-- user_id
-- review_type
-- period_start
-- period_end
-- generated_summary
-- user_reflection
-- lessons
-- embedding nullable
-- timestamps
+Initial RPCs:
+- `match_insights(...)`
+- `match_challenges(...)`
+- `match_reviewed_decisions(...)`
+- `match_periodic_reviews(...)`
 
-### 4.10 Capture processing records
+All search functions must preserve user isolation, accept only rows with `embedding_status = 'READY'`, and retain the lifecycle metadata needed for evaluation/debugging. `PENDING`, `STALE` and `FAILED` rows never enter a retrieval result.
 
-Recommended dedicated table:
+Corpus filters:
+- `match_challenges` returns only challenges with `status = 'RESOLVED'`.
+- `match_reviewed_decisions` returns only decisions with `reviewed_at is not null`.
 
-`capture_jobs`
+## 5. Client data access
 
-Fields:
-- id
-- user_id
-- capture_type: TEXT / VOICE / IMAGE
-- storage_path nullable
-- raw_text nullable
-- processing_status
-- classified_type nullable
-- confidence nullable
-- error_code nullable
-- retry_count
-- timestamps
+Supabase client handles authenticated CRUD. TanStack Query owns server-state cache. Local persistence is cache, not authoritative truth. Offline writes require an explicit queue/conflict policy before being promised.
 
-Purpose:
-- preserve source and processing state independently from final routed entity.
+## 6. AI adapters
 
----
-
-## 5. RLS Pattern
-
-For every user-owned table:
-
-```sql
-alter table <table_name> enable row level security;
-```
-
-Typical ownership policies:
-
-```sql
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id)
-```
-
-Never rely on a client-supplied user ID for authorization.
-
-Special SQL functions used for vector search must derive/verify authenticated identity.
-
-Service-role operations must be limited to Edge Functions that genuinely require them.
-
----
-
-## 6. Vector Search Functions
-
-Conceptual signatures:
-
-```sql
-match_insights(
-  query_embedding vector(1536),
-  match_threshold float,
-  match_count int
-)
-
-match_challenges(
-  query_embedding vector(1536),
-  match_threshold float,
-  match_count int
-)
-```
-
-The authenticated user scope should be derived inside the database function or enforced through RLS/security-safe query design.
-
-Do not expose a free-form `target_user_id` parameter that permits cross-user lookup.
-
-Return:
-- record id;
-- text/summary fields needed for retrieval;
-- similarity score;
-- safe metadata.
-
----
-
-## 7. Supabase Client
-
-Suggested files:
-
-```text
-lib/supabase/client.ts
-lib/supabase/types.ts
-features/auth/useAuth.ts
-```
-
-Responsibilities:
-- configure public URL/anon key;
-- platform-appropriate session persistence;
-- auth lifecycle;
-- no service-role key;
-- no AI provider secret.
-
----
-
-## 8. Repository Contract
-
-Example:
-
-```ts
-export interface DailyPulseRepository {
-  getByDate(date: string): Promise<DailyPulse | null>;
-  upsert(input: DailyPulseInput): Promise<DailyPulse>;
-}
-```
-
-UI should consume domain hooks rather than call Supabase directly.
-
----
-
-## 9. Local Storage Abstraction
-
-Interface:
-
-```ts
-export interface KeyValueStore {
-  get<T>(key: string): Promise<T | null>;
-  set<T>(key: string, value: T): Promise<void>;
-  remove(key: string): Promise<void>;
-}
-```
+Do not call model APIs directly from UI components.
 
 Adapters:
-- native secure/fast adapter as appropriate for data type;
-- web adapter;
-- auth token/session handling may use a stricter adapter than ordinary non-sensitive cache.
+- transcription
+- OCR / vision extraction
+- structured extraction/routing
+- embeddings
+- synthesis
 
-Do not treat every cached value as equivalent from a security perspective.
+### OCR / vision flow
+1. client uploads source through an authenticated path
+2. the server validates the request before any adapter runs:
+   - the caller is authenticated and owns the target record
+   - the declared content type is on an explicit allowlist and matches the actual bytes
+   - the object size is within a configured maximum
+   - the storage path resolves to an object owned by the authenticated user
+   - ownership is derived from the authenticated identity, never from a client-supplied `user_id`, storage path or metadata field
+3. server-side processing invokes the OCR/vision adapter only after validation succeeds
+4. extracted text is schema-validated before persistence
+5. routing receives normalized text + provenance
+6. low-confidence routing requires user confirmation
+7. source retention follows privacy/cleanup policy
 
----
+A request that fails validation is rejected without invoking a provider adapter.
 
-## 10. Pending Mutation Queue
+AI outputs must be schema-validated before persistence. Confidence alone is not authorization to overwrite user-owned structured data.
 
-Conceptual type:
+## 7. Embedding lifecycle
 
-```ts
-type PendingMutation = {
-  id: string;
-  entityType: string;
-  entityId: string;
-  operation: 'CREATE' | 'UPDATE' | 'DELETE';
-  payload: unknown;
-  createdAt: string;
-  retryCount: number;
-  status: 'PENDING' | 'SYNCING' | 'FAILED';
-};
-```
+For every vector-bearing entity persist model identifier, version/config identifier, embedded timestamp, and lifecycle status.
 
-Rules:
-- optimistic UI first;
-- persist queue before considering action durable offline;
-- idempotency key = mutation id where useful;
-- exponential retry/backoff;
-- avoid duplicate side effects.
+When model/config changes:
+1. mark incompatible embeddings STALE
+2. queue re-embedding
+3. exclude stale vectors from normal retrieval
+4. track failures explicitly
 
----
+Never mix same-dimension vectors from incompatible models as if they were comparable.
 
-## 11. AI Service Contracts
+## 8. Error handling
 
-Server-side interface:
+Return stable application errors rather than leaking raw provider/database errors. Log enough context for debugging without logging private content or secrets.
 
-```ts
-interface AIService {
-  transcribe(input: AudioInput): Promise<Transcript>;
-  classifyCapture(input: string): Promise<Classification>;
-  extractStructuredData<T>(schema: Schema<T>, input: string): Promise<T>;
-  embed(text: string): Promise<number[]>;
-  synthesizeGroundedAnswer(input: RagContext): Promise<RagAnswer>;
-}
-```
+## 9. Testing layers
 
-Structured outputs must be schema-validated before persistence.
-
-Model identifiers are environment configuration.
-
----
-
-## 12. Voice Processing Flow
-
-1. Client creates `capture_job`.
-2. Client uploads audio to private user-scoped storage.
-3. Client invokes `process-voice`.
-4. Edge Function validates JWT.
-5. Function derives authenticated user id.
-6. Function verifies storage ownership/path.
-7. Audio is transcribed.
-8. Transcript is classified/extracted.
-9. Structured result is schema-validated.
-10. Embedding is generated if relevant.
-11. Final entity is persisted.
-12. `capture_job` becomes COMPLETED.
-13. On failure, source remains and job becomes FAILED/RETRYABLE.
-
----
-
-## 13. Image/OCR Flow
-
-Same security and job-state principles as voice.
-
-Validation:
-- allowed content type;
-- maximum file size;
-- ownership/path;
-- no implicit trust in filename or client metadata.
-
----
-
-## 14. Semantic Search Flow
-
-1. Authenticated user submits query.
-2. Edge Function validates request.
-3. Query embedding generated.
-4. User-scoped vector functions retrieve Top-K.
-5. Context payload is minimized to relevant records.
-6. LLM synthesizes answer.
-7. Response contains source record IDs/references.
-8. Client can navigate to source records.
-
----
-
-## 15. Analytics Implementation
-
-First version:
-- SQL aggregation/RPC or client-side transformation for modest datasets;
-- avoid sending raw personal history to an LLM merely to compute averages/correlations;
-- statistical language should include sample size where useful.
-
-Example result contract:
-
-```ts
-type AssociationInsight = {
-  metricA: string;
-  metricB: string;
-  baselineAverage: number;
-  comparisonAverage: number;
-  percentageDifference: number;
-  sampleSize: number;
-};
-```
-
----
-
-## 16. Validation
-
-Use shared runtime schemas for:
-- forms;
-- Edge Function request payloads;
-- AI structured output;
-- critical DB-bound domain objects.
-
-Never assume TypeScript compile-time typing validates network input.
-
----
-
-## 17. Error Model
-
-Recommended application error classes/codes:
-
-- AUTH_REQUIRED
-- FORBIDDEN
-- VALIDATION_FAILED
-- NETWORK_UNAVAILABLE
-- STORAGE_UPLOAD_FAILED
-- AI_TRANSCRIPTION_FAILED
-- AI_CLASSIFICATION_FAILED
-- EMBEDDING_FAILED
-- SYNC_FAILED
-- UNKNOWN
-
-User-facing messages should avoid exposing internal secrets, SQL details or stack traces.
-
----
-
-## 18. Environment Configuration
-
-### Local
-`.env.local` or Expo-compatible local configuration; never committed.
-
-### Test
-Vercel Test environment variables + EAS preview variables + Supabase Test secrets.
-
-### Production
-Vercel Production environment variables + EAS production variables + Supabase Production secrets.
-
-Client-safe values:
-- public Supabase URL;
-- public/anon publishable key as appropriate.
-
-Server-only:
-- AI API keys;
-- Supabase service role;
-- privileged webhook/signing secrets.
-
----
-
-## 19. CI / Quality Gates
-
-For pull requests:
-- install dependencies;
-- lint;
-- typecheck;
-- unit tests;
-- selected integration tests;
-- secret scan/dependency checks as configured;
-- build validation where practical.
-
-For Test promotion:
-- migrations apply cleanly to Test;
-- Web Test deployment succeeds;
-- required EAS preview build passes;
-- QA executes relevant acceptance criteria.
-
-For Production:
-- approved PR;
-- required Security FE/BE PASS;
-- QA PASS;
-- no unresolved CRITICAL/HIGH security blocker;
-- migrations applied through controlled pipeline;
-- deploy from `main`.
-
----
-
-## 20. Ticket-Level Design Rule
-
-LLD is the baseline, not a reason to make every ticket enormous.
-
-A ticket that changes:
-- cross-domain architecture;
-- DB ownership model;
-- auth model;
-- sync strategy;
-- AI security boundary;
-- deployment strategy
-
-must create/update an ADR before implementation proceeds.
+- unit: pure logic, validation, analytics
+- component: critical UI behavior
+- integration: Supabase access patterns/RLS
+- e2e: high-value web flows
+- cross-platform smoke tests for mobile
+- capture-job retry/confirmation tests
+- vector lifecycle/retrieval corpus tests

@@ -1,17 +1,16 @@
 ---
-applyTo: "supabase/**/*,repositories/**/*.ts,lib/supabase/**/*.ts,lib/ai/**/*.ts,lib/ai-contracts/**/*.ts"
+applyTo: "supabase/**/*,lib/supabase/**/*,lib/ai/**/*,lib/ai-contracts/**/*,repositories/**/*,data/**/*"
 ---
 
-# Supabase / Backend Instructions
+# Supabase / Backend Data Instructions
 
-Follow `.rule/database-rules.md`, `.rule/error-handling-rules.md`, `.rule/testing-rules.md`, ADR-002, ADR-006, and ADR-007.
-
-- Schema changes are migrations.
-- Enable and test RLS for user-owned data.
-- Derive user identity from authenticated context.
-- Never authorize using caller-supplied `user_id`.
-- Keep AI/service-role secrets server-side.
-- Validate Edge Function inputs and AI structured output at runtime.
-- Preserve source capture when AI processing fails.
-- Vector retrieval must be user-scoped and preserve provenance.
-- No direct Production MCP mutation.
+- permanent schema changes are migrations-as-code.
+- private user-owned data must use RLS.
+- never trust a caller-supplied `user_id` for authorization; derive ownership from authenticated identity.
+- service-role access must explicitly re-enforce user ownership.
+- no service-role key or AI provider secret in client code.
+- AI structured output must be runtime/schema validated before persistence.
+- MCP writes are Test-only.
+- do not change Production directly.
+- vector/RPC functions must preserve user isolation.
+- new Data API resources require explicit exposure/grants in the migration or deployment contract.

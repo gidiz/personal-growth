@@ -7,17 +7,19 @@ Read PRD, HLD, LLD, relevant ADRs, Development Process, `.doc/glossary.md`, and 
 `develop` is default integration. Use short-lived `feature/`, `task/`, `bugfix/`, `security/` branches and PRs. No direct pushes to protected branches.
 
 ## GitHub Project vocabulary
-Work Type: Epic / Feature / Task / Bug / Security
+Work Type: Epic | Feature | Task | Bug | Security
 
-Area: Frontend / Backend / Database / AI / RAG / Infrastructure / Cross-Cutting
+Area: Frontend | Backend | Database | AI / RAG | Infrastructure | Cross-Cutting
 
-Priority: P0 – Critical / P1 – High / P2 – Medium / P3 – Low
+Priority: P0 – Critical | P1 – High | P2 – Medium | P3 – Low
 
-Security Impact: None / Low / Medium / High
+Security Impact: None | Low | Medium | High
 
-Estimate: XS / S / M / L / XL
+Estimate: XS | S | M | L | XL
 
-Status: Backlog / Ready / In Progress / In Review / Security Review / QA / Blocked / Done
+Status: Backlog | Ready | In Progress | In Review | Security Review | QA | Blocked | Done
+
+Values are separated by `|` and must match the GitHub Project single-select options exactly. `AI / RAG` is one Area value, not two.
 
 ## Database / Supabase
 - migrations-as-code

@@ -58,9 +58,20 @@ The hard-coded Test `project_ref` is an explicit non-secret developer-tooling ex
 
 Scoped with the `X-MCP-Toolsets` header to `issues,projects,labels,pull_requests,actions`, the union of what the agent profiles declare. The default toolset and `/x/all` are both deliberately avoided.
 
-This server is not read-only, because Planner must create issues and set Project fields. Role narrowing comes from the `tools:` list in each agent profile. ADR-007 records the accepted residual risk in default agent mode.
+Authentication uses a **fine-grained Personal Access Token**, not interactive OAuth. VS Code prompts for it once through a `promptString` input with `password: true` and stores it in secret storage; it is never written to `.vscode/mcp.json`.
 
-Starting the server requires confirming the VS Code trust prompt and completing OAuth once. `gh` CLI authentication is separate and does not configure it.
+Create the token at `https://github.com/settings/personal-access-tokens` with:
+
+- Repository access: **Only select repositories** -> `gidiz/personal-growth`
+- Repository permissions: Issues **Read and write**, Pull requests **Read-only**, Actions **Read-only**, Metadata **Read-only**
+- Account permissions: Projects **Read and write**
+- An expiry date; rotate by re-entering the new token when the server next starts
+
+Grant nothing else. Issues covers label tools. If a tool fails with a permission error, widen one permission deliberately and record why here rather than broadening the token to keep moving.
+
+OAuth was rejected because the VS Code grant requests account-wide permissions including deletion of any administrable repository. ADR-007 records that reasoning.
+
+This server is not read-only, because Planner must create issues and set Project fields. Role narrowing comes from the `tools:` list in each agent profile.
 
 ### Playwright
 

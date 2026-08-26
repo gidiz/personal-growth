@@ -31,7 +31,7 @@ Values are separated by `|` and must match the GitHub Project single-select opti
 - no autonomous Production direct writes
 
 ## MCP
-Repository-level Supabase MCP uses an explicit allowlist. Custom agents narrow it further. Reviewer/Security roles do not get Supabase mutation tools. Cloud-agent credentials are Agents secrets; the VS Code Supabase MCP is separate and read-only, so Test migrations are applied with the Supabase CLI. The VS Code GitHub MCP is scoped by toolset and is not read-only, because Planner writes issues and Project fields.
+Repository-level Supabase MCP uses an explicit allowlist. Custom agents narrow it further. Reviewer/Security roles do not get Supabase mutation tools. Cloud-agent credentials are Agents secrets; the VS Code Supabase MCP is separate and read-only, so Test migrations are applied with the Supabase CLI. The VS Code GitHub MCP is scoped by toolset and by a repository-scoped fine-grained PAT, and is not read-only, because Planner writes issues and Project fields.
 
 ## Security gates
 Security result: PASS | CHANGES_REQUIRED | BLOCKED. Unresolved Critical/High blocks merge; Medium requires remediation or explicit human risk acceptance.

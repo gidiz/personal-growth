@@ -69,17 +69,25 @@ Consequence: the Backend Agent cannot apply schema changes through IDE MCP. Test
 
 ### GitHub
 
-The hosted GitHub MCP server is registered at `https://api.githubcopilot.com/mcp/` with interactive OAuth and no committed token.
+The hosted GitHub MCP server is registered at `https://api.githubcopilot.com/mcp/`.
 
-Scope is enforced server-side through the `X-MCP-Toolsets` header:
+Scope is enforced at two layers.
+
+**Transport scope** uses the `X-MCP-Toolsets` header:
 
 `issues,projects,labels,pull_requests,actions`
 
 These five toolsets are the union of what the agent profiles declare. The default toolset and `/x/all` are both deliberately avoided.
 
+**Credential scope** uses a fine-grained Personal Access Token restricted to the `gidiz/personal-growth` repository, supplied through a VS Code `promptString` input with `password: true`. The token is stored in VS Code secret storage and never written to a committed file.
+
+Interactive OAuth was evaluated and rejected. The VS Code OAuth grant requests account-wide permissions that include deleting any administrable repository, managing Codespaces and writing Packages, none of which the five toolsets need. Toolset scoping limits which tools an agent can call, but it does not limit what the underlying credential can do; accepting that grant would have left the least-privilege position in this ADR unenforced at the credential layer.
+
 This server is **not** read-only, because the Planner Agent must create issues and write Project fields. Role narrowing therefore depends on the `tools:` list in each agent profile rather than on the server.
 
-Accepted residual risk: in default agent mode, where no role profile applies, issue, label and Project write tools are reachable. The blast radius is work-tracking metadata, which is reversible and touches neither source code nor any database. Revisit this decision if that stops being true.
+Accepted residual risk: in default agent mode, where no role profile applies, issue, label and Project write tools are reachable. The blast radius is work-tracking metadata in a single repository, which is reversible and touches neither source code nor any database. Revisit this decision if that stops being true.
+
+Known limitation: VS Code does not forward servers that require interactive input to the Agent Host, so this server is available in the IDE but not in Agent Host sessions.
 
 ## Consequences
 Tool availability becomes part of security governance and must be reviewed like code.

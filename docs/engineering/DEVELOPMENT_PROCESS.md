@@ -70,7 +70,7 @@ A QA failure includes failed criterion/regression, reproduction evidence, expect
 - Security Impact None or Low: normal review + QA unless escalated
 - Security Impact Medium or High: Security Review mandatory
 - Frontend impact: Security FE
-- Backend, Database, AI / RAG or Infrastructure impact: Security BE
+- Backend, Database, AI / RAG, or Infrastructure impact: Security BE
 - Cross-Cutting: both when applicable
 
 ## 6. Automated correction budget

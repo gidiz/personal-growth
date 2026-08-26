@@ -9,7 +9,7 @@
       "url": "https://api.githubcopilot.com/mcp/",
       "headers": {
         "Authorization": "Bearer ${input:github_mcp_pat}",
-        "X-MCP-Toolsets": "issues,projects,labels,pull_requests,actions"
+        "X-MCP-Toolsets": "issues,labels,pull_requests,actions"
       }
     }
   },
@@ -17,7 +17,7 @@
     {
       "type": "promptString",
       "id": "github_mcp_pat",
-      "description": "Fine-grained GitHub PAT scoped to gidiz/personal-growth only (Issues RW, Pull requests R, Actions R, Projects RW)",
+      "description": "Fine-grained GitHub PAT scoped to gidiz/personal-growth only (Issues RW, Pull requests R, Actions R, Metadata R)",
       "password": true
     }
   ]

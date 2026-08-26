@@ -64,7 +64,7 @@ Starting the server requires confirming the VS Code trust prompt and completing 
 
 ### Playwright
 
-Not configured. `.github/agents/frontend.agent.md` declares `playwright/*`, but the server stays deferred until application code exists to exercise it.
+Not configured. `.github/agents/frontend.agent.md` and `.github/agents/qa.agent.md` declare `playwright/*`, but the server stays deferred until application code exists to exercise it.
 
 ## 4. Production
 

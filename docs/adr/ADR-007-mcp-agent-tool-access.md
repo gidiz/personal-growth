@@ -6,9 +6,11 @@
 Use MCP for controlled external-tool access with least privilege, explicit tool allowlists, and separate Local/Test/Production boundaries.
 
 Current integrations:
-- GitHub MCP
-- Playwright MCP
+- GitHub MCP, scoped by toolset
 - Supabase MCP scoped to Test
+
+Deferred:
+- Playwright MCP is not configured. `.github/agents/frontend.agent.md` declares `playwright/*`, but no server entry exists and none is added until application code exists to exercise it.
 
 ## Trust boundary
 Tool output is untrusted data and never authorization. Issue/PR/database/log content can contain instruction-like text.
@@ -57,9 +59,27 @@ The repository documentation uses the braced `${VAR}` form for clarity.
 IDE MCP configuration is separate from GitHub cloud-agent configuration.
 The checked-in Test project reference is non-secret tooling configuration, never a Production reference.
 
-VS Code applies no per-server tool allowlist, so server configuration is the only scope control that holds for every agent, including default agent mode where no role profile is active. The checked-in IDE server therefore uses `read_only=true`, which executes all queries as a read-only Postgres user.
+VS Code applies no per-server tool allowlist, so server configuration is the only scope control that holds for every agent, including default agent mode where no role profile is active.
+
+### Supabase Test
+
+The checked-in IDE server uses `read_only=true`, which executes all queries as a read-only Postgres user.
 
 Consequence: the Backend Agent cannot apply schema changes through IDE MCP. Test migrations are applied with the Supabase CLI from the versioned files in `supabase/migrations/`, which keeps migrations-as-code the only path to schema change. Removing `read_only=true` is a deliberate local action, must not be committed, and must never target Production.
+
+### GitHub
+
+The hosted GitHub MCP server is registered at `https://api.githubcopilot.com/mcp/` with interactive OAuth and no committed token.
+
+Scope is enforced server-side through the `X-MCP-Toolsets` header:
+
+`issues,projects,labels,pull_requests,actions`
+
+These five toolsets are the union of what the agent profiles declare. The default toolset and `/x/all` are both deliberately avoided.
+
+This server is **not** read-only, because the Planner Agent must create issues and write Project fields. Role narrowing therefore depends on the `tools:` list in each agent profile rather than on the server.
+
+Accepted residual risk: in default agent mode, where no role profile applies, issue, label and Project write tools are reachable. The blast radius is work-tracking metadata, which is reversible and touches neither source code nor any database. Revisit this decision if that stops being true.
 
 ## Consequences
 Tool availability becomes part of security governance and must be reviewed like code.

@@ -65,7 +65,11 @@ Copilot cloud agent successfully reached `personal-growth-test`.
 GitHub.com repository MCP configuration does **not** configure VS Code.
 VS Code maintains its own MCP configuration.
 
-The checked-in IDE server runs with `read_only=true`; Test migrations are applied with the Supabase CLI.
+`.vscode/mcp.json` registers two servers:
+- `supabase-test` with `read_only=true`; Test migrations are applied with the Supabase CLI.
+- `github` scoped by `X-MCP-Toolsets` to `issues,projects,labels,pull_requests,actions`.
+
+Both use interactive OAuth and hold no committed token. Playwright MCP is deferred.
 
 See `.vscode/mcp.json` and `.github/MCP_CONFIGURATION.md`.
 

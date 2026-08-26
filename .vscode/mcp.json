@@ -3,6 +3,13 @@
     "supabase-test": {
       "type": "http",
       "url": "https://mcp.supabase.com/mcp?project_ref=ehppewofypspcfzboqvm&features=database,docs&read_only=true"
+    },
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "X-MCP-Toolsets": "issues,projects,labels,pull_requests,actions"
+      }
     }
   }
 }

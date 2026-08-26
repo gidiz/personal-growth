@@ -132,12 +132,13 @@ GitHub Issues + Project
        v
 Implementation Agents
        |
-       +--> GitHub MCP
-       +--> Supabase MCP (Test)
-       +--> Playwright MCP
+       +--> GitHub MCP (toolset-scoped)
+       +--> Supabase MCP (Test, read-only in IDE)
        |
        v
 PR -> Review -> Security -> QA -> Merge
 ```
 
 MCP provides controlled tool access; repository rules and tickets remain authoritative.
+
+Playwright MCP is deferred until application code exists to exercise it. See ADR-007 for the current integration list and scoping.

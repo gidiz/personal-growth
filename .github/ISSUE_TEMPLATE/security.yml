@@ -45,7 +45,7 @@ body:
     id: scope
     attributes:
       label: Affected area / trust boundary
-      description: Frontend, Backend, Database, AI, RAG, Infrastructure, Cross-Cutting.
+      description: Frontend, Backend, Database, AI / RAG, Infrastructure, Cross-Cutting.
     validations:
       required: true
   - type: markdown

@@ -9,17 +9,19 @@ Epic
 
 ## 2. Project fields
 
-Status: Backlog / Ready / In Progress / In Review / Security Review / QA / Blocked / Done
+Status: Backlog | Ready | In Progress | In Review | Security Review | QA | Blocked | Done
 
-Work Type: Epic / Feature / Task / Bug / Security
+Work Type: Epic | Feature | Task | Bug | Security
 
-Area: Frontend / Backend / Database / AI / RAG / Infrastructure / Cross-Cutting
+Area: Frontend | Backend | Database | AI / RAG | Infrastructure | Cross-Cutting
 
-Priority: P0 – Critical / P1 – High / P2 – Medium / P3 – Low
+Priority: P0 – Critical | P1 – High | P2 – Medium | P3 – Low
 
-Security Impact: None / Low / Medium / High
+Security Impact: None | Low | Medium | High
 
-Estimate: XS / S / M / L / XL
+Estimate: XS | S | M | L | XL
+
+Values are separated by `|` and must match the GitHub Project single-select options exactly. `AI / RAG` is one Area value, not two.
 
 Iteration is the native GitHub two-week planning field, not a retry counter.
 
@@ -65,10 +67,10 @@ A QA failure includes failed criterion/regression, reproduction evidence, expect
 
 ## 5. Security routing
 
-- None / Low: normal review + QA unless escalated
-- Medium / High: Security Review mandatory
+- Security Impact None or Low: normal review + QA unless escalated
+- Security Impact Medium or High: Security Review mandatory
 - Frontend impact: Security FE
-- Backend/Database/AI/RAG/Infrastructure impact: Security BE
+- Backend, Database, AI / RAG or Infrastructure impact: Security BE
 - Cross-Cutting: both when applicable
 
 ## 6. Automated correction budget

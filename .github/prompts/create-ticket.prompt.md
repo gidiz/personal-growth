@@ -16,7 +16,7 @@ Create one GitHub-ready work item.
 Use exactly:
 
 Work Type: Epic | Feature | Task | Bug | Security
-Area: Frontend | Backend | Database | AI | RAG | Infrastructure | Cross-Cutting
+Area: Frontend | Backend | Database | AI / RAG | Infrastructure | Cross-Cutting
 Priority: P0 – Critical | P1 – High | P2 – Medium | P3 – Low
 Security Impact: None | Low | Medium | High
 Estimate: XS | S | M | L | XL

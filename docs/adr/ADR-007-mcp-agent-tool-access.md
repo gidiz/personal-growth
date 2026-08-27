@@ -41,10 +41,14 @@ The Planner Agent uses the following GitHub MCP tools:
 - `issue_read`
 - `issue_write`
 - `search_issues`
-- `projects_list`
-- `projects_write`
 - `list_label`
 - `label_write`
+
+Planner has **no** Project tools. The IDE credential is a fine-grained PAT, and fine-grained PATs cannot access user-owned ProjectsV2 at all: GitHub exposes a Projects permission for organization-owned projects only, and documents user projects as reachable solely by a classic PAT or a GitHub App. Declaring `projects_list` / `projects_write` here would name tools that cannot work.
+
+Project membership and field values are therefore applied in a separate step with the `gh` CLI, whose classic OAuth token carries the `project` scope granted deliberately and independently. Planner states the intended field values in the ticket; a human or the primary assistant applies them.
+
+Do not re-add the `projects` toolset or the Project tools without first moving the Project to an organization or switching the credential to a classic PAT, and record that trade-off here.
 
 Tool identifiers must match the official GitHub MCP Server names exactly.
 Any change to this allowlist requires updating both ADR-007 and
@@ -69,17 +73,25 @@ Consequence: the Backend Agent cannot apply schema changes through IDE MCP. Test
 
 ### GitHub
 
-The hosted GitHub MCP server is registered at `https://api.githubcopilot.com/mcp/` with interactive OAuth and no committed token.
+The hosted GitHub MCP server is registered at `https://api.githubcopilot.com/mcp/`.
 
-Scope is enforced server-side through the `X-MCP-Toolsets` header:
+Scope is enforced at two layers.
 
-`issues,projects,labels,pull_requests,actions`
+**Transport scope** uses the `X-MCP-Toolsets` header:
 
-These five toolsets are the union of what the agent profiles declare. The default toolset and `/x/all` are both deliberately avoided.
+`issues,labels,pull_requests,actions`
 
-This server is **not** read-only, because the Planner Agent must create issues and write Project fields. Role narrowing therefore depends on the `tools:` list in each agent profile rather than on the server.
+These four toolsets are the union of what the agent profiles declare. The default toolset and `/x/all` are both deliberately avoided. `projects` is excluded because the credential cannot use it.
 
-Accepted residual risk: in default agent mode, where no role profile applies, issue, label and Project write tools are reachable. The blast radius is work-tracking metadata, which is reversible and touches neither source code nor any database. Revisit this decision if that stops being true.
+**Credential scope** uses a fine-grained Personal Access Token restricted to the `gidiz/personal-growth` repository, supplied through a VS Code `promptString` input with `password: true`. The token is stored in VS Code secret storage and never written to a committed file. Its permissions are Issues read/write, Pull requests read, Actions read, Metadata read, and nothing else.
+
+Interactive OAuth was evaluated and rejected. The VS Code OAuth grant requests account-wide permissions that include deleting any administrable repository, managing Codespaces and writing Packages, none of which the toolsets need. Toolset scoping limits which tools an agent can call, but it does not limit what the underlying credential can do; accepting that grant would have left the least-privilege position in this ADR unenforced at the credential layer.
+
+This server is not read-only, because the Planner Agent must create issues and labels. Role narrowing therefore depends on the `tools:` list in each agent profile rather than on the server.
+
+Accepted residual risk: in default agent mode, where no role profile applies, issue and label write tools are reachable. The blast radius is work-tracking metadata in a single repository, which is reversible and touches neither source code nor any database. Revisit this decision if that stops being true.
+
+Known limitation: VS Code does not forward servers that require interactive input to the Agent Host, so this server is available in the IDE but not in Agent Host sessions.
 
 ## Consequences
 Tool availability becomes part of security governance and must be reviewed like code.

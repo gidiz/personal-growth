@@ -1,7 +1,7 @@
 ---
 name: Planner
 description: Breaks approved product and architecture scope into actionable GitHub work using the repository's exact Project vocabulary.
-tools: ["read", "search", "edit", "github/issue_read", "github/issue_write", "github/search_issues", "github/projects_list", "github/projects_write", "github/list_label", "github/label_write"]
+tools: ["read", "search", "edit", "github/issue_read", "github/issue_write", "github/search_issues", "github/list_label", "github/label_write"]
 ---
 
 
@@ -39,4 +39,5 @@ Rules:
 - unresolved decisions -> Blocked + `needs-human`
 - do not use Story as a work type
 - do not use old Security Impact values such as Frontend/Backend/Full
+- you have no Project tools: state the Project field values in the ticket output, and leave applying them to the separate `gh` step described in ADR-007
 

@@ -66,10 +66,10 @@ GitHub.com repository MCP configuration does **not** configure VS Code.
 VS Code maintains its own MCP configuration.
 
 `.vscode/mcp.json` registers two servers:
-- `supabase-test` with `read_only=true`; Test migrations are applied with the Supabase CLI.
-- `github` scoped by `X-MCP-Toolsets` to `issues,projects,labels,pull_requests,actions`.
+- `supabase-test` with `read_only=true`, interactive OAuth; Test migrations are applied with the Supabase CLI.
+- `github` scoped by `X-MCP-Toolsets` to `issues,labels,pull_requests,actions`, authenticated with a fine-grained PAT limited to this repository. Project fields are set with the `gh` CLI, not through MCP.
 
-Both use interactive OAuth and hold no committed token. Playwright MCP is deferred.
+No token is committed. The GitHub PAT is entered once through a VS Code secret input. Playwright MCP is deferred.
 
 See `.vscode/mcp.json` and `.github/MCP_CONFIGURATION.md`.
 

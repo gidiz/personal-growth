@@ -44,7 +44,7 @@ Reviewer: no Supabase mutation tools.
 
 ## 3. VS Code
 
-GitHub repository MCP settings do not automatically configure the IDE. `.vscode/mcp.json` is the IDE's own configuration and registers two servers, both using interactive OAuth with no committed token.
+GitHub repository MCP settings do not automatically configure the IDE. `.vscode/mcp.json` is the IDE's own configuration and registers two servers. Neither holds a committed token: Supabase uses interactive OAuth, GitHub uses a secret input.
 
 ### Supabase Test
 
@@ -56,11 +56,23 @@ The hard-coded Test `project_ref` is an explicit non-secret developer-tooling ex
 
 ### GitHub
 
-Scoped with the `X-MCP-Toolsets` header to `issues,projects,labels,pull_requests,actions`, the union of what the agent profiles declare. The default toolset and `/x/all` are both deliberately avoided.
+Scoped with the `X-MCP-Toolsets` header to `issues,labels,pull_requests,actions`, the union of what the agent profiles declare. The default toolset and `/x/all` are both deliberately avoided.
 
-This server is not read-only, because Planner must create issues and set Project fields. Role narrowing comes from the `tools:` list in each agent profile. ADR-007 records the accepted residual risk in default agent mode.
+Authentication uses a **fine-grained Personal Access Token**, not interactive OAuth. VS Code prompts for it once through a `promptString` input with `password: true` and stores it in secret storage; it is never written to `.vscode/mcp.json`.
 
-Starting the server requires confirming the VS Code trust prompt and completing OAuth once. `gh` CLI authentication is separate and does not configure it.
+Create the token at `https://github.com/settings/personal-access-tokens` with:
+
+- Repository access: **Only select repositories** -> `gidiz/personal-growth`
+- Repository permissions: Issues **Read and write**, Pull requests **Read-only**, Actions **Read-only**, Metadata **Read-only**
+- An expiry date; rotate by re-entering the new token when the server next starts
+
+Grant nothing else. Issues covers the label tools. If a tool fails with a permission error, widen one permission deliberately and record why here rather than broadening the token to keep moving.
+
+OAuth was rejected because the VS Code grant requests account-wide permissions including deletion of any administrable repository. ADR-007 records that reasoning.
+
+**No Project tools.** Fine-grained PATs cannot reach user-owned ProjectsV2 - GitHub offers a Projects permission for organization-owned projects only. Project membership and field values are applied separately with the `gh` CLI, which holds the `project` scope. See ADR-007 before changing this.
+
+This server is not read-only, because Planner must create issues and labels. Role narrowing comes from the `tools:` list in each agent profile.
 
 ### Playwright
 

@@ -21,14 +21,19 @@ GitHub Project fields:
 - Estimate
 - Iteration
 
-Repository labels currently used:
+Agent routing labels. One per agent, ordered to follow the delivery flow:
+- `agent:product`
+- `agent:planner`
 - `agent:architect`
 - `agent:frontend`
 - `agent:backend`
+- `agent:reviewer`
 - `agent:security-fe`
 - `agent:security-be`
 - `agent:qa`
 - `agent:devops`
+
+Workflow labels:
 - `needs-human`
 
 ## Supabase Test

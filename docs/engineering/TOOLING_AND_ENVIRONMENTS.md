@@ -21,7 +21,7 @@ GitHub Project fields:
 - Estimate
 - Iteration
 
-Repository labels currently used. One routing label exists per agent, ordered to follow the delivery flow:
+Agent routing labels. One per agent, ordered to follow the delivery flow:
 - `agent:product`
 - `agent:planner`
 - `agent:architect`
@@ -32,6 +32,8 @@ Repository labels currently used. One routing label exists per agent, ordered to
 - `agent:security-be`
 - `agent:qa`
 - `agent:devops`
+
+Workflow labels:
 - `needs-human`
 
 ## Supabase Test

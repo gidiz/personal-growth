@@ -36,6 +36,26 @@ Agent routing labels. One per agent, ordered to follow the delivery flow:
 Workflow labels:
 - `needs-human`
 
+## Continuous integration
+
+Workflow:
+`.github/workflows/ci.yml`
+
+Required status check:
+`CI Gate`
+
+`CI Gate` is the single aggregate job. Independent jobs (`repo-hygiene`, `app-checks`,
+`migration-checks`) fan out; `CI Gate` runs with `if: always()`, declares `needs` on all of them,
+and fails when any needed job result is `failure` or `cancelled`.
+
+Required status checks are **non-strict** on both `develop` and `main`: a branch is not forced to
+be up to date with its base before merging. This trades staleness risk for merge throughput on a
+single-maintainer repository.
+
+**To add a check, add a job and add it to the gate's `needs`; never edit the ruleset.** The
+required-status-check list stays exactly `CI Gate` forever, so new checks ship as workflow edits
+reviewed in a normal PR.
+
 ## Supabase Test
 
 Project display name:

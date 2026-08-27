@@ -1,0 +1,227 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+  push:
+    branches:
+      - develop
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  repo-hygiene:
+    name: repo-hygiene
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+
+      - name: Validate every YAML file under .github/
+        run: |
+          set -euo pipefail
+          python3 -c 'import yaml' 2>/dev/null || pip install --quiet pyyaml
+          python3 - <<'PY'
+          import pathlib
+          import sys
+          import yaml
+
+          paths = sorted(
+              p for p in pathlib.Path('.github').rglob('*')
+              if p.is_file() and p.suffix in ('.yml', '.yaml')
+          )
+          if not paths:
+              print('repo-hygiene: no YAML files found under .github/ - nothing to validate.')
+
+          failures = 0
+          for p in paths:
+              try:
+                  list(yaml.safe_load_all(p.read_text(encoding='utf-8')))
+              except Exception as exc:
+                  failures += 1
+                  print(f'::error file={p}::repo-hygiene: invalid YAML: {exc}')
+              else:
+                  print(f'ok  {p}')
+
+          if failures:
+              print(f'repo-hygiene: {failures} YAML file(s) under .github/ failed to parse.')
+              sys.exit(1)
+          print(f'repo-hygiene: {len(paths)} YAML file(s) under .github/ parsed successfully.')
+          PY
+
+      - name: Scan tracked files for secret material
+        run: |
+          set -euo pipefail
+          status=0
+
+          denied=$(git ls-files \
+            | grep -E '(\.pem$|\.p12$|\.pfx$|\.secret$|\.token$|(^|/)\.env$|(^|/)\.env\.)' \
+            | grep -vE '(^|/)\.env\.example$' || true)
+          if [ -n "$denied" ]; then
+            echo "::error::repo-hygiene: tracked files match secret-material patterns:"
+            echo "$denied"
+            status=1
+          else
+            echo "repo-hygiene: no tracked file matches secret-material patterns (*.pem, *.p12, *.pfx, *.secret, *.token, .env, .env.* other than .env.example)."
+          fi
+
+          # The pattern is written as a character class so this workflow never matches itself.
+          hits=$(git grep -nIEi 'service[_]role' -- . || true)
+          if [ -n "$hits" ]; then
+            echo "::error::repo-hygiene: possible Supabase service-role key literal in tracked content:"
+            echo "$hits"
+            status=1
+          else
+            echo "repo-hygiene: no service-role key literal found in tracked content."
+          fi
+
+          exit $status
+
+  app-checks:
+    name: app-checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+
+      - name: Detect application code
+        id: detect
+        run: |
+          set -euo pipefail
+          if [ -f package.json ]; then
+            echo "app-checks: found ./package.json - running application checks."
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::app-checks: SKIPPED - ./package.json was not found at the repository root, so there is no application code to install, lint, typecheck, or test yet."
+            echo "app-checks: SKIPPED - looked for ./package.json at the repository root and it does not exist. No dependency install, no lint, no typecheck, no test was run."
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Node.js
+        if: steps.detect.outputs.found == 'true'
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        if: steps.detect.outputs.found == 'true'
+        run: |
+          set -euo pipefail
+          if [ -f package-lock.json ]; then
+            echo "app-checks: package-lock.json found - running deterministic install with npm ci."
+            npm ci
+          else
+            echo "::warning::app-checks: no package-lock.json found - falling back to npm install. Commit a lockfile so CI installs are deterministic."
+            npm install --no-audit --no-fund
+          fi
+
+      - name: Run declared scripts
+        if: steps.detect.outputs.found == 'true'
+        run: |
+          set -euo pipefail
+          status=0
+          for script in lint typecheck test; do
+            if node -e "process.exit((((require('./package.json').scripts)||{})['$script']) ? 0 : 1)"; then
+              echo "::group::npm run $script"
+              npm run "$script" || status=1
+              echo "::endgroup::"
+            else
+              echo "app-checks: SKIPPED script '$script' - it is not declared in the scripts block of package.json."
+            fi
+          done
+          exit $status
+
+  migration-checks:
+    name: migration-checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+
+      - name: Validate migration files
+        run: |
+          set -euo pipefail
+          dir="supabase/migrations"
+
+          if [ ! -d "$dir" ]; then
+            echo "::notice::migration-checks: SKIPPED - ./supabase/migrations was not found, so there are no database migrations to validate yet."
+            echo "migration-checks: SKIPPED - looked for the directory ./supabase/migrations and it does not exist. No naming or emptiness check was run."
+            exit 0
+          fi
+
+          status=0
+          found=0
+          while IFS= read -r f; do
+            found=$((found + 1))
+            base=$(basename "$f")
+            file_ok=1
+            if ! printf '%s' "$base" | grep -qE '^[0-9]{14}_[a-z0-9_]+\.sql$'; then
+              echo "::error file=$f::migration-checks: '$base' does not match the expected naming convention <14-digit-timestamp>_<snake_case_name>.sql"
+              file_ok=0
+              status=1
+            fi
+            if [ ! -s "$f" ]; then
+              echo "::error file=$f::migration-checks: '$base' is empty"
+              file_ok=0
+              status=1
+            fi
+            if [ "$file_ok" -eq 1 ]; then
+              echo "ok  $f"
+            fi
+          done < <(find "$dir" -type f | sort)
+
+          if [ "$found" -eq 0 ]; then
+            echo "migration-checks: ./supabase/migrations exists but contains no files - nothing to validate."
+          else
+            echo "migration-checks: inspected $found migration file(s)."
+          fi
+
+          exit $status
+
+  gate:
+    name: CI Gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    if: always()
+    # Adding a job here is the only change needed to bring it under the gate.
+    needs:
+      - repo-hygiene
+      - app-checks
+      - migration-checks
+    steps:
+      - name: Aggregate fan-out job results
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          set -euo pipefail
+          echo "CI Gate: aggregating the result of every job listed in 'needs'."
+          echo "$NEEDS" | jq -r 'to_entries[] | "  \(.key): \(.value.result)"'
+
+          blocking=$(echo "$NEEDS" | jq -r '
+            [to_entries[]
+             | select(.value.result != "success" and .value.result != "skipped")
+             | "\(.key)=\(.value.result)"]
+            | join(", ")')
+
+          if [ -n "$blocking" ]; then
+            echo "::error::CI Gate: FAILED - blocking job results: $blocking"
+            exit 1
+          fi
+
+          echo "CI Gate: PASSED - every needed job reported success or skipped."

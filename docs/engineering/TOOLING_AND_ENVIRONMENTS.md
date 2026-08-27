@@ -21,10 +21,13 @@ GitHub Project fields:
 - Estimate
 - Iteration
 
-Repository labels currently used:
+Repository labels currently used. One routing label exists per agent, ordered to follow the delivery flow:
+- `agent:product`
+- `agent:planner`
 - `agent:architect`
 - `agent:frontend`
 - `agent:backend`
+- `agent:reviewer`
 - `agent:security-fe`
 - `agent:security-be`
 - `agent:qa`

@@ -200,7 +200,8 @@ jobs:
       contents: read
     steps:
       - name: Probe
-        run: echo "extensibility-probe: brought under the gate by a workflow edit alone, with no ruleset change."
+        run: |
+          echo "extensibility-probe brought under the gate by a workflow edit alone, with no ruleset change."
 
   gate:
     name: CI Gate

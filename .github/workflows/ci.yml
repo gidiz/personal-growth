@@ -193,6 +193,15 @@ jobs:
 
           exit $status
 
+  extensibility-probe:
+    name: extensibility-probe
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Probe
+        run: echo "extensibility-probe: brought under the gate by a workflow edit alone, with no ruleset change."
+
   gate:
     name: CI Gate
     runs-on: ubuntu-latest
@@ -204,6 +213,7 @@ jobs:
       - repo-hygiene
       - app-checks
       - migration-checks
+      - extensibility-probe
     steps:
       - name: Aggregate fan-out job results
         env:

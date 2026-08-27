@@ -201,7 +201,8 @@ jobs:
     steps:
       - name: Probe
         run: |
-          echo "extensibility-probe brought under the gate by a workflow edit alone, with no ruleset change."
+          echo "extensibility-probe forced to fail to prove the gate reports failure."
+          exit 1
 
   gate:
     name: CI Gate

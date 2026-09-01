@@ -32,7 +32,8 @@ jobs:
       - name: Validate every YAML file under .github/ and self-check the gate
         run: |
           set -euo pipefail
-          python3 -c 'import yaml' 2>/dev/null || pip install --quiet 'pyyaml==6.0.2'
+          # python3 -m pip, not bare pip: it installs into the same interpreter that runs the script below.
+          python3 -c 'import yaml' 2>/dev/null || python3 -m pip install --quiet 'pyyaml==6.0.2'
           python3 - <<'PY'
           import pathlib
           import sys

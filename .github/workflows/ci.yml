@@ -1,0 +1,330 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+  push:
+    branches:
+      - develop
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  repo-hygiene:
+    name: repo-hygiene
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+
+      - name: Validate every YAML file under .github/ and self-check the gate
+        run: |
+          set -euo pipefail
+          # python3 -m pip, not bare pip: it installs into the same interpreter that runs the script below.
+          python3 -c 'import yaml' 2>/dev/null || python3 -m pip install --quiet 'pyyaml==6.0.2'
+          python3 - <<'PY'
+          import pathlib
+          import sys
+          import yaml
+
+          paths = sorted(
+              p for p in pathlib.Path('.github').rglob('*')
+              if p.is_file() and p.suffix in ('.yml', '.yaml')
+          )
+          if not paths:
+              print('repo-hygiene: no YAML files found under .github/ - nothing to validate.')
+
+          failures = 0
+          for p in paths:
+              try:
+                  list(yaml.safe_load_all(p.read_text(encoding='utf-8')))
+              except Exception as exc:
+                  failures += 1
+                  print(f'::error file={p}::repo-hygiene: invalid YAML: {exc}')
+              else:
+                  print(f'ok  {p}')
+
+          if failures:
+              print(f'repo-hygiene: {failures} YAML file(s) under .github/ failed to parse.')
+              sys.exit(1)
+          print(f'repo-hygiene: {len(paths)} YAML file(s) under .github/ parsed successfully.')
+
+          # The branch rulesets require a status check named exactly 'CI Gate' and have zero
+          # bypass actors, so a rename or an ungated job is only recoverable by the owner
+          # hand-editing the ruleset. These assertions keep that from happening in a normal PR.
+          GATE_ID = 'gate'
+          GATE_NAME = 'CI Gate'
+          ci = pathlib.Path('.github/workflows/ci.yml')
+          workflow = yaml.safe_load(ci.read_text(encoding='utf-8')) or {}
+          jobs = workflow.get('jobs') or {}
+          problems = 0
+
+          gate = jobs.get(GATE_ID)
+          if not isinstance(gate, dict):
+              print(f'::error file={ci}::repo-hygiene: no job with id {GATE_ID!r} was found, so '
+                    f'the required status check {GATE_NAME!r} can never report.')
+              problems += 1
+          else:
+              if gate.get('name') != GATE_NAME:
+                  print(f'::error file={ci}::repo-hygiene: the gate job is named '
+                        f'{gate.get("name")!r} but the ruleset requires exactly {GATE_NAME!r}. '
+                        f'Renaming it silently disables the required status check on develop '
+                        f'and main.')
+                  problems += 1
+
+              needs = gate.get('needs') or []
+              if isinstance(needs, str):
+                  needs = [needs]
+
+              ungated = sorted(j for j in jobs if j != GATE_ID and j not in needs)
+              if ungated:
+                  print(f'::error file={ci}::repo-hygiene: job(s) missing from the gate needs '
+                        f'list: {", ".join(ungated)}. A job outside the gate can fail while the '
+                        f'required check still reports green.')
+                  problems += 1
+
+              conditional = sorted(
+                  j for j in needs
+                  if isinstance(jobs.get(j), dict) and 'if' in jobs[j]
+              )
+              if conditional:
+                  print(f'::error file={ci}::repo-hygiene: gated job(s) carry a job-level if:, '
+                        f'{", ".join(conditional)}. A skipped job counts as a pass at the gate, '
+                        f'so push the condition down to the step level instead.')
+                  problems += 1
+
+          if problems:
+              sys.exit(1)
+          print('repo-hygiene: CI Gate self-check passed.')
+          PY
+
+      - name: Scan tracked files for secret material
+        run: |
+          set -euo pipefail
+          status=0
+
+          denied=$(git ls-files \
+            | grep -E '(\.pem$|\.p12$|\.pfx$|\.secret$|\.token$|(^|/)\.env$|(^|/)\.env\.)' \
+            | grep -vE '(^|/)\.env\.example$' || true)
+          if [ -n "$denied" ]; then
+            echo "::error::repo-hygiene: tracked files match secret-material patterns:"
+            printf '%s\n' "$denied" | sed 's/^/| /'
+            status=1
+          else
+            echo "repo-hygiene: no tracked file matches secret-material patterns (*.pem, *.p12, *.pfx, *.secret, *.token, .env, .env.* other than .env.example)."
+          fi
+
+          # Every literal marker below is broken up with a character class so this workflow never
+          # matches itself. Matched content is prefixed before it is echoed, so a hostile tracked
+          # file cannot emit a workflow command and suppress these findings.
+          shapes='(sb[_]secret[_][A-Za-z0-9]{8,}|sbp[_][0-9a-f]{40}|ey[J][A-Za-z0-9_-]{10,}\.ey[J][A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,})'
+          hits=$(git grep -nIE "$shapes" -- . || true)
+          if [ -n "$hits" ]; then
+            echo "::error::repo-hygiene: tracked content contains something shaped like a Supabase secret key, a Supabase personal access token, or a JWT:"
+            printf '%s\n' "$hits" | sed 's/^/| /'
+            status=1
+          else
+            echo "repo-hygiene: no Supabase key, token, or JWT literal found in tracked content."
+          fi
+
+          # Matches the PostgREST role-name keyword only when a non-empty value is assigned to it,
+          # so a grant statement in a migration and an empty placeholder in .env.example stay legal.
+          assigned="service[_]role[a-z0-9_]*[[:space:]]*[:=]+[[:space:]]*[\"']?[A-Za-z0-9_./+=-]"
+          hits=$(git grep -nIEi "$assigned" -- . || true)
+          if [ -n "$hits" ]; then
+            echo "::error::repo-hygiene: a service-role keyword is assigned a literal value in tracked content:"
+            printf '%s\n' "$hits" | sed 's/^/| /'
+            status=1
+          else
+            echo "repo-hygiene: no service-role keyword is assigned a literal value in tracked content."
+          fi
+
+          exit $status
+
+  app-checks:
+    name: app-checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+
+      - name: Detect application code
+        id: detect
+        run: |
+          set -euo pipefail
+          if [ -f package.json ]; then
+            echo "app-checks: found ./package.json - running application checks."
+            echo "found=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          elsewhere=$(git ls-files '*package.json' || true)
+          if [ -n "$elsewhere" ]; then
+            echo "::error::app-checks: there is no ./package.json at the repository root, but tracked package.json file(s) exist elsewhere. Those packages would never be installed, linted, typechecked, or tested, so the gate would report green over unverified application code. Move the application to the repository root, or teach app-checks about these paths."
+            printf '%s\n' "$elsewhere" | sed 's/^/| /'
+            exit 1
+          fi
+
+          echo "::notice::app-checks: SKIPPED - ./package.json was not found at the repository root, so there is no application code to install, lint, typecheck, or test yet."
+          echo "app-checks: SKIPPED - looked for ./package.json at the repository root and it does not exist. No dependency install, no lint, no typecheck, no test was run."
+          echo "found=false" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node.js
+        if: steps.detect.outputs.found == 'true'
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        if: steps.detect.outputs.found == 'true'
+        run: |
+          set -euo pipefail
+          if [ -f package-lock.json ]; then
+            echo "app-checks: package-lock.json found - running deterministic install with npm ci."
+            npm ci
+          else
+            echo "::warning::app-checks: no package-lock.json found - falling back to npm install. Commit a lockfile so CI installs are deterministic."
+            npm install --no-audit --no-fund
+          fi
+
+      - name: Run declared scripts
+        if: steps.detect.outputs.found == 'true'
+        run: |
+          set -euo pipefail
+          status=0
+          ran=0
+          for script in lint typecheck test; do
+            if node -e "process.exit((((require('./package.json').scripts)||{})['$script']) ? 0 : 1)"; then
+              ran=$((ran + 1))
+              echo "::group::npm run $script"
+              npm run "$script" || status=1
+              echo "::endgroup::"
+            else
+              echo "app-checks: SKIPPED script '$script' - it is not declared in the scripts block of package.json."
+            fi
+          done
+
+          if [ "$ran" -eq 0 ]; then
+            echo "::warning::app-checks: package.json exists but declares none of lint, typecheck, or test, so this job verified nothing about the application code. Declare at least one of those scripts."
+          fi
+          echo "app-checks: ran $ran of the 3 known scripts (lint, typecheck, test)."
+          exit $status
+
+  migration-checks:
+    name: migration-checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+
+      - name: Validate migration files
+        run: |
+          set -euo pipefail
+          dir="supabase/migrations"
+
+          if [ ! -d "$dir" ]; then
+            stray=$(git ls-files '*.sql' || true)
+            if [ -n "$stray" ]; then
+              echo "::error::migration-checks: ./supabase/migrations does not exist, but tracked .sql file(s) were found elsewhere. Schema changes outside supabase/migrations are never validated and are not migrations-as-code. Move them under supabase/migrations."
+              printf '%s\n' "$stray" | sed 's/^/| /'
+              exit 1
+            fi
+            echo "::notice::migration-checks: SKIPPED - ./supabase/migrations was not found and no tracked .sql file exists anywhere, so there are no database migrations to validate yet."
+            echo "migration-checks: SKIPPED - looked for the directory ./supabase/migrations and it does not exist. No naming or emptiness check was run."
+            exit 0
+          fi
+
+          status=0
+          sql_found=0
+          other_found=0
+          while IFS= read -r f; do
+            base=$(basename "$f")
+            case "$base" in
+              *.sql)
+                sql_found=$((sql_found + 1))
+                file_ok=1
+                if ! printf '%s' "$base" | grep -qE '^[0-9]{14}_[a-z0-9_]+\.sql$'; then
+                  echo "::error file=$f::migration-checks: this migration does not match the expected naming convention <14-digit-timestamp>_<snake_case_name>.sql"
+                  file_ok=0
+                  status=1
+                fi
+                if [ ! -s "$f" ]; then
+                  echo "::error file=$f::migration-checks: this migration is empty"
+                  file_ok=0
+                  status=1
+                fi
+                if [ "$file_ok" -eq 1 ]; then
+                  printf '%s\n' "ok  $f" | sed 's/^/| /'
+                fi
+                ;;
+              .gitkeep|README.md)
+                other_found=$((other_found + 1))
+                printf '%s\n' "ok  $f (allowed non-SQL file, not name-checked)" | sed 's/^/| /'
+                ;;
+              *)
+                other_found=$((other_found + 1))
+                echo "::error file=$f::migration-checks: unexpected non-SQL file in supabase/migrations - only *.sql, .gitkeep, and README.md belong here"
+                status=1
+                ;;
+            esac
+          done < <(find "$dir" -type f | sort)
+
+          if [ "$sql_found" -eq 0 ]; then
+            echo "migration-checks: ./supabase/migrations exists but contains no .sql file - nothing to name-check."
+          else
+            echo "migration-checks: inspected $sql_found migration file(s) and $other_found non-SQL file(s)."
+          fi
+
+          exit $status
+
+  gate:
+    name: CI Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    if: always()
+    # Adding a job here is the only change needed to bring it under the gate.
+    needs:
+      - repo-hygiene
+      - app-checks
+      - migration-checks
+    steps:
+      - name: Aggregate fan-out job results
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          set -euo pipefail
+          echo "CI Gate: aggregating the result of every job listed in 'needs'."
+          echo "$NEEDS" | jq -r 'to_entries[] | "  \(.key): \(.value.result)"'
+
+          blocking=$(echo "$NEEDS" | jq -r '
+            [to_entries[]
+             | select(.value.result != "success" and .value.result != "skipped")
+             | "\(.key)=\(.value.result)"]
+            | join(", ")')
+
+          if [ -n "$blocking" ]; then
+            echo "::error::CI Gate: FAILED - blocking job results: $blocking"
+            exit 1
+          fi
+
+          echo "CI Gate: PASSED - every needed job reported success or skipped."

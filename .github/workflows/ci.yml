@@ -157,7 +157,6 @@ jobs:
     name: app-checks
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: github.event_name == 'never'
     permissions:
       contents: read
     steps:
@@ -296,18 +295,8 @@ jobs:
 
           exit $status
 
-  red-probe:
-    name: red-probe
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: read
-    steps:
-      - name: Do nothing
-        run: echo 'red-probe is intentionally outside the gate needs list.'
-
   gate:
-    name: CI Gate (renamed)
+    name: CI Gate
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:

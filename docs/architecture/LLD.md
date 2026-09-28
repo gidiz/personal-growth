@@ -31,7 +31,7 @@ supabase/
   functions/
 ```
 
-`assets/` holds app icons and splash images referenced by `app.json`. It is platform packaging
+`assets/` holds the app icons and the favicon referenced by `app.json`. It is platform packaging
 input, not application source.
 
 ## 2. Database conventions

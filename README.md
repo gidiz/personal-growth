@@ -59,8 +59,9 @@ The repository includes:
 
 ### Prerequisites
 
-- Node.js 22 — matches the `actions/setup-node` pin in `.github/workflows/ci.yml`. Newer majors
-  work locally but are not what CI verifies.
+- Node.js 22.x — the `actions/setup-node` step in `.github/workflows/ci.yml` pins `node-version: '22'`,
+  so 22 is the only major CI verifies. Newer majors generally work locally, but a failure that
+  reproduces only on a newer major is not a CI failure.
 - npm 10 or newer.
 - For native targets: Expo Go on a device, or Android Studio / Xcode simulators.
 

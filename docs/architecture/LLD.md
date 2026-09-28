@@ -25,10 +25,14 @@ lib/
     embeddings.ts
     synthesis.ts
   analytics/
+assets/
 supabase/
   migrations/
   functions/
 ```
+
+`assets/` holds the app icons and the favicon referenced by `app.json`. It is platform packaging
+input, not application source.
 
 ## 2. Database conventions
 

@@ -55,6 +55,29 @@ The repository includes:
 - Vercel: deferred until Expo/Web scaffold exists
 - EAS: deferred until Expo scaffold exists
 
+## Local development
+
+### Prerequisites
+
+- Node.js 22.x — the `actions/setup-node` step in `.github/workflows/ci.yml` pins `node-version: '22'`,
+  so 22 is the only major CI verifies. Newer majors generally work locally, but a failure that
+  reproduces only on a newer major is not a CI failure.
+- npm 10 or newer.
+- For native targets: Expo Go on a device, or Android Studio / Xcode simulators.
+
+### Commands
+
+```bash
+npm ci            # deterministic install from package-lock.json
+npm run lint      # ESLint, fails on any warning
+npm run typecheck # tsc --noEmit, strict mode
+npm start         # Expo dev server, choose a target
+npm run web       # web only
+```
+
+`lint` and `typecheck` are the two scripts the `app-checks` CI job runs, so a clean local run is
+the same check the merge gate applies.
+
 ## Development principle
 
 No feature starts from an unstructured "build this" prompt.

@@ -56,8 +56,10 @@ app) so no other app can satisfy the check by reporting the same name. Non-stric
 not forced to be up to date with its base before merging, trading staleness risk for merge
 throughput on a single-maintainer repository.
 
-Because `required_approving_review_count` is 0, `CI Gate` is the only mechanical merge gate this
-repository has.
+Because `required_approving_review_count` is 0, `CI Gate` is the only required status check, and so
+the only automated code-verification gate, this repository has. It is not the only thing that can
+block a merge: both rulesets also set `required_review_thread_resolution: true`, so an unresolved
+review thread blocks the merge independently of the check result.
 
 **To add a check, add a job and add it to the gate's `needs`; never edit the ruleset.** The
 required-status-check list stays exactly `CI Gate` forever, so new checks ship as workflow edits

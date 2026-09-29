@@ -3,9 +3,11 @@ import { Text, View } from 'react-native';
 
 export default function ExampleModalScreen() {
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-      <Text>Example modal</Text>
-      <Link href="/">Dismiss</Link>
+    <View className="flex-1 items-center justify-center gap-4 bg-surface">
+      <Text className="text-lg text-ink">Example modal</Text>
+      <Link className="text-brand underline" href="/">
+        Dismiss
+      </Link>
     </View>
   );
 }

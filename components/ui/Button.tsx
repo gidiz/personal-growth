@@ -18,11 +18,11 @@ export function Button({ label, onPress, disabled = false, accessibilityHint }: 
       onPress={onPress}
       className={[
         'min-h-touch-min min-w-touch-min items-center justify-center rounded-control px-5 py-3',
-        // Disabled and pressed never rely on colour alone: disabled also loses the border and
-        // dims opacity, pressed also inverts the border, so the state survives a greyscale view.
+        // Every state carries a non-colour cue so it survives greyscale: disabled drops the border
+        // and dims opacity, pressed shrinks and thickens the border.
         disabled
           ? 'border-2 border-transparent bg-disabled opacity-60'
-          : 'border-2 border-brand bg-brand active:border-ink active:bg-brand-pressed',
+          : 'border-2 border-brand bg-brand active:scale-95 active:border-4 active:border-ink active:bg-brand-pressed',
         // Web-only focus ring; the platform default outline is not removed anywhere.
         'focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-focus',
       ].join(' ')}

@@ -9,7 +9,13 @@ export default function RootLayout() {
       <Stack.Screen name="(auth)" options={{ headerShown: false, title: 'Home' }} />
       <Stack.Screen
         name="modals/example"
-        options={{ presentation: 'modal', title: 'Example modal' }}
+        options={{
+          // 'modal' on Android is just a screen with the default push animation and no dismiss
+          // gesture: gestureEnabled is iOS-only. 'formSheet' is a real draggable sheet on both.
+          presentation: 'formSheet',
+          sheetGrabberVisible: true,
+          title: 'Example modal',
+        }}
       />
     </Stack>
   );

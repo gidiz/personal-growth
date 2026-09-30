@@ -31,7 +31,13 @@ Storage + Realtime              |
 ## 2. Technology stack
 
 ### Client
-Expo, Expo Router, React Native, TypeScript, NativeWind, TanStack Query, MMKV native cache, and LocalStorage web fallback.
+Expo, Expo Router, React Native, TypeScript, NativeWind, TanStack Query, an `expo-sqlite/kv-store`
+native cache, and a LocalStorage web fallback.
+
+MMKV was the original intent and was replaced during implementation: `expo-sqlite/kv-store` ships
+with the Expo SDK, needs no extra native module and no custom dev client, and still offers
+synchronous accessors. Neither option encrypts at rest, so the cache is contractually restricted
+to non-sensitive data in both cases.
 
 ### Backend platform
 Supabase PostgreSQL, Auth, Storage, Edge Functions, and pgvector.

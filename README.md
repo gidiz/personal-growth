@@ -78,6 +78,17 @@ npm run web       # web only
 `lint` and `typecheck` are the two scripts the `app-checks` CI job runs, so a clean local run is
 the same check the merge gate applies.
 
+## Styling conventions
+
+- **NativeWind first.** Style with `className`. Reach for a `StyleSheet` object or an inline
+  `style` prop only when NativeWind genuinely cannot express it, and say why in the PR.
+- **Primitives live in `components/ui/`.** Feature-specific components belong in the other
+  `components/` subfolders from `docs/architecture/LLD.md` section 1.
+- **Tokens live in `tailwind.config.js`.** Colour, spacing and radius come from the theme, not
+  from literals in components. `components/ui/Button.tsx` is the reference for the house pattern:
+  typed props, an accessible name and role, a 44px minimum touch target, a visible Web focus ring,
+  and disabled/pressed states that survive a greyscale view.
+
 ## Development principle
 
 No feature starts from an unstructured "build this" prompt.

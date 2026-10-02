@@ -23,7 +23,15 @@ module.exports = defineConfig([
         {
           patterns: [
             {
-              group: ['**/storage/backend', '**/storage/backend.*'],
+              // Only the capability-bearing modules. backend.types carries a type and no capability.
+              group: [
+                '**/storage/backend',
+                '**/storage/backend.native',
+                '**/storage/backend.web',
+                '../**/storage/backend',
+                '../**/storage/backend.native',
+                '../**/storage/backend.web',
+              ],
               message:
                 'Use `cacheStorage` from @/lib/storage. It is the only entry point that enforces the non-sensitive-cache contract.',
             },

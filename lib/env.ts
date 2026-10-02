@@ -48,7 +48,8 @@ function decodeBase64Url(segment: string): string | null {
   let bits = 0;
   let bitCount = 0;
   let decoded = '';
-  for (const character of segment) {
+  // JWTs are unpadded per RFC 7515, but padding must not turn this check into a silent pass.
+  for (const character of segment.replace(/={1,2}$/, '')) {
     const index = BASE64URL.indexOf(character);
     if (index < 0) {
       return null;
@@ -96,8 +97,8 @@ function requireValue(name: PublicEnvName): string {
   if (isServerSideSecret(value)) {
     throw new EnvironmentConfigurationError(
       name,
-      'holds a server-side secret, which must never be given an EXPO_PUBLIC_ name because ' +
-        'EXPO_PUBLIC_ values are compiled into the shipped bundle',
+      'holds a Supabase server-side credential, which must never be given an EXPO_PUBLIC_ name ' +
+        'because EXPO_PUBLIC_ values are compiled into the shipped bundle',
     );
   }
   return value;

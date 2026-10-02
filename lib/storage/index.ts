@@ -100,8 +100,9 @@ export const cacheStorage = {
       return null;
     }
     // Web `localStorage` is writable by any script on the origin, so a stored value is untrusted
-    // input on the way back in too. A value that no longer matches its schema is a cache miss.
-    return CACHE_SCHEMA[key].accepts(value) ? value : null;
+    // input on the way back in too. A value that no longer matches its schema is a cache miss, and
+    // so is an undeclared key arriving from an untyped boundary.
+    return CACHE_SCHEMA[key]?.accepts(value) ? value : null;
   },
   set(key: CacheKey, value: string): void {
     assertWritable(key, value);

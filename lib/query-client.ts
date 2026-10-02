@@ -8,8 +8,8 @@ import { QueryClient } from '@tanstack/react-query';
  * of something a future refactor of the layout can accidentally break.
  *
  * Defaults are set explicitly because TanStack Query's out-of-the-box behaviour (`staleTime: 0`,
- * `retry: 3` on mutations as well) is tuned for dashboards, not for a mostly-offline journalling
- * app on a phone.
+ * `retry: 3` on queries) is tuned for dashboards, not for a mostly-offline journalling app on a
+ * phone. The mutation setting below matches the library default and is written down as policy.
  */
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,9 +27,8 @@ export const queryClient = new QueryClient({
       retryDelay: (attemptIndex) => Math.min(1_000 * 2 ** attemptIndex, 30_000),
     },
     mutations: {
-      // Mutations are NOT retried automatically. ADR-001's offline queue owns retry, idempotency
-      // and conflict handling; blind retries here would duplicate user captures before that
-      // exists.
+      // Stated, not inherited: ADR-001's offline queue owns retry, idempotency and conflict
+      // handling, so raising this before that queue exists would duplicate user captures.
       retry: 0,
     },
   },

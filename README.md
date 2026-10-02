@@ -120,8 +120,10 @@ the same check the merge gate applies.
   `expo-sqlite/kv-store` on native and `localStorage` on Web, selected by Metro's platform file
   resolution. There is no `Platform.OS` branch at any call site.
 - **`lib/storage` is a non-sensitive cache and nothing else.** It is unencrypted on both
-  platforms. Keys must be declared in `CACHE_KEYS`, and writes of credential-shaped values are
-  rejected at runtime. Auth tokens, sessions and provider keys do not belong there.
+  platforms. Every key must be declared in `CACHE_KEYS` *and* given a value schema in
+  `CACHE_SCHEMA` — the `Record<CacheKey, …>` makes a missing schema a compile error — and writes of
+  credential-shaped values are rejected at runtime on top of that. Auth tokens, sessions and
+  provider keys do not belong there.
 - **Hooks live in `hooks/` and are named `useX`.** `hooks/useExampleQuery.ts` is the current
   reference wiring; it is a scaffold probe with no network I/O and is expected to be replaced.
 

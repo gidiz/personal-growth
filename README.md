@@ -65,6 +65,27 @@ The repository includes:
 - npm 10 or newer.
 - For native targets: Expo Go on a device, or Android Studio / Xcode simulators.
 
+### Environment variables
+
+Copy `.env.example` to `.env` at the repository root and fill in the values:
+
+```bash
+cp .env.example .env
+```
+
+The app validates its configuration on startup in `lib/env.ts` and **refuses to boot** if a
+variable is missing, naming the variable in the error. After changing `.env`, restart with
+`npx expo start --clear` so the new value is inlined.
+
+> **`EXPO_PUBLIC_*` values are compiled into the shipped client bundle and are therefore public.**
+> Anyone who downloads the app or opens the Web bundle can read them. Never give an
+> `EXPO_PUBLIC_` name to a Supabase service-role key, a database password, an AI provider secret,
+> or an MCP token. `.env` is gitignored; `.env.example` is tracked and must only ever contain
+> empty values.
+
+`lib/env.ts` is the only module permitted to read `process.env`. Everything else imports `env`
+from it.
+
 ### Commands
 
 ```bash
@@ -88,6 +109,23 @@ the same check the merge gate applies.
   from literals in components. `components/ui/Button.tsx` is the reference for the house pattern:
   typed props, an accessible name and role, a 44px minimum touch target, a visible Web focus ring,
   and disabled/pressed states that survive a greyscale view.
+
+## Data layer conventions
+
+- **Server state goes through TanStack Query.** The single `QueryClient` lives in
+  `lib/query-client.ts` and is provided from `app/_layout.tsx`. Its `staleTime`, `gcTime` and
+  `retry` defaults are set explicitly and explained there; mutations are never retried
+  automatically, because the offline queue in `docs/adr/ADR-001-local-first.md` owns idempotency.
+- **Persistent client storage goes through `lib/storage`.** One synchronous interface,
+  `expo-sqlite/kv-store` on native and `localStorage` on Web, selected by Metro's platform file
+  resolution. There is no `Platform.OS` branch at any call site.
+- **`lib/storage` is a non-sensitive cache and nothing else.** It is unencrypted on both
+  platforms. Every key must be declared in `CACHE_KEYS` *and* given a value schema in
+  `CACHE_SCHEMA` — the `Record<CacheKey, …>` makes a missing schema a compile error — and writes of
+  credential-shaped values are rejected at runtime on top of that. Auth tokens, sessions and
+  provider keys do not belong there.
+- **Hooks live in `hooks/` and are named `useX`.** `hooks/useExampleQuery.ts` is the current
+  reference wiring; it is a scaffold probe with no network I/O and is expected to be replaced.
 
 ## Development principle
 

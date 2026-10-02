@@ -7,7 +7,8 @@ import { CACHE_KEYS, cacheStorage } from '@/lib/storage';
  * `QueryClientProvider` is mounted above the routes, the cache adapter round-trips through one
  * shared interface, and neither needs a `Platform.OS` branch at the call site.
  *
- * It performs no network I/O. Replace it once a real repository hook exists.
+ * It performs no network I/O. Replace it once a real repository hook exists — and do not copy the
+ * cache write out of `queryFn`, which a retry would run twice. That belongs in a mutation.
  */
 
 const PRINCIPLES = [

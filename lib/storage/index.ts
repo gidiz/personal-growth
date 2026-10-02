@@ -95,7 +95,13 @@ function assertWritable(key: CacheKey, value: string): void {
 
 export const cacheStorage = {
   get(key: CacheKey): string | null {
-    return backend.getItem(key);
+    const value = backend.getItem(key);
+    if (value === null) {
+      return null;
+    }
+    // Web `localStorage` is writable by any script on the origin, so a stored value is untrusted
+    // input on the way back in too. A value that no longer matches its schema is a cache miss.
+    return CACHE_SCHEMA[key].accepts(value) ? value : null;
   },
   set(key: CacheKey, value: string): void {
     assertWritable(key, value);

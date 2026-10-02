@@ -35,10 +35,70 @@ const RAW = {
 
 type PublicEnvName = keyof typeof RAW;
 
+// Supabase shows the publishable key and the secret key side by side, and the legacy forms of both
+// are JWTs of indistinguishable outward shape. A paste error here would compile an RLS-bypassing
+// credential into the shipped bundle, and no CI scan can catch it because .env is untracked.
+const SERVER_SIDE_ROLE = 'service_role';
+
+const BASE64URL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+
+// Hermes and the browser both provide `atob`, but a security check that must never silently stop
+// working is not worth hanging on a host global.
+function decodeBase64Url(segment: string): string | null {
+  let bits = 0;
+  let bitCount = 0;
+  let decoded = '';
+  for (const character of segment) {
+    const index = BASE64URL.indexOf(character);
+    if (index < 0) {
+      return null;
+    }
+    bits = (bits << 6) | index;
+    bitCount += 6;
+    if (bitCount >= 8) {
+      bitCount -= 8;
+      decoded += String.fromCharCode((bits >> bitCount) & 0xff);
+    }
+  }
+  return decoded;
+}
+
+function isServerSideSecret(value: string): boolean {
+  if (/^sb_secret_/.test(value) || /^sbp_/.test(value)) {
+    return true;
+  }
+
+  const segments = value.split('.');
+  if (segments.length !== 3) {
+    return false;
+  }
+  const payload = decodeBase64Url(segments[1]);
+  if (payload === null) {
+    return false;
+  }
+  try {
+    const claims: unknown = JSON.parse(payload);
+    return (
+      typeof claims === 'object' &&
+      claims !== null &&
+      (claims as { role?: unknown }).role === SERVER_SIDE_ROLE
+    );
+  } catch {
+    return false;
+  }
+}
+
 function requireValue(name: PublicEnvName): string {
   const value = RAW[name]?.trim();
   if (!value) {
     throw new EnvironmentConfigurationError(name, 'is missing or empty');
+  }
+  if (isServerSideSecret(value)) {
+    throw new EnvironmentConfigurationError(
+      name,
+      'holds a server-side secret, which must never be given an EXPO_PUBLIC_ name because ' +
+        'EXPO_PUBLIC_ values are compiled into the shipped bundle',
+    );
   }
   return value;
 }

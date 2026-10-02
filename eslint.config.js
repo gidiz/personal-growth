@@ -13,6 +13,26 @@ module.exports = defineConfig([
     },
   },
   {
+    // The raw backends take any string key and any string value. Reaching past lib/storage would
+    // bypass the key allowlist, the per-key value schema and the credential check all at once.
+    files: ['**/*.ts', '**/*.tsx'],
+    ignores: ['lib/storage/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/storage/backend', '**/storage/backend.*'],
+              message:
+                'Use `cacheStorage` from @/lib/storage. It is the only entry point that enforces the non-sensitive-cache contract.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     ignores: ['dist/*', 'web-build/*', 'coverage/*', '.expo/*'],
   },
 ]);

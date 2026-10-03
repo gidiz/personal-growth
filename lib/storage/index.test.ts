@@ -80,9 +80,17 @@ describe('write guards', () => {
     ['schema violation', OPAQUE_REFRESH_TOKEN],
     ['credential shape', JWT_SHAPED],
   ])('never echoes the rejected value in the error (%s)', (_label: string, rejected: string) => {
-    expect(() => cacheStorage.set(KEY, rejected)).toThrow(
-      expect.not.stringContaining(rejected) as unknown as string,
-    );
+    // Captured explicitly: `toThrow` with an asymmetric matcher receives the Error object, not
+    // its message, so `expect.not.stringContaining` would pass regardless of what the message says.
+    let thrown: unknown;
+    try {
+      cacheStorage.set(KEY, rejected);
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBeInstanceOf(Error);
+    expect((thrown as Error).message).not.toContain(rejected);
   });
 });
 

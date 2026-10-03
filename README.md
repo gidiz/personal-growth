@@ -92,12 +92,29 @@ from it.
 npm ci            # deterministic install from package-lock.json
 npm run lint      # ESLint, fails on any warning
 npm run typecheck # tsc --noEmit, strict mode
+npm run test      # Jest + jest-expo + React Native Testing Library, non-interactive
 npm start         # Expo dev server, choose a target
 npm run web       # web only
 ```
 
-`lint` and `typecheck` are the two scripts the `app-checks` CI job runs, so a clean local run is
-the same check the merge gate applies.
+`lint`, `typecheck` and `test` are the three scripts the `app-checks` CI job runs, so a clean local
+run is the same check the merge gate applies.
+
+## Testing
+
+- **Runner:** Jest with the `jest-expo` preset, configured in `jest.config.js`. Component tests use
+  React Native Testing Library. Coverage is written to `coverage/`, which is gitignored; no coverage
+  threshold is enforced.
+- **`render` and `fireEvent` are async** in React Native Testing Library 14. Forget to `await` them
+  and `screen` stays detached, so every query fails with ``` `render` function has not been called ```.
+- **Test behaviour, not implementation.** Query by accessible role and name. No test IDs, no
+  snapshots, no assertions on component internals — see `.rule/testing-rules.md`.
+- **Fixtures are synthetic, always.** Never a real key, never a Production project reference, never
+  private journal or personal-growth content. `AGENTS.md` and `.rule/testing-rules.md` both require
+  this. Build credential-shaped fixtures at runtime rather than pasting literals, or the
+  `repo-hygiene` secret scan will reject the file — correctly.
+- **The suite is hermetic.** It passes with no `.env` present and makes no network call, so CI never
+  depends on developer-local configuration.
 
 ## Styling conventions
 

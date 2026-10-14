@@ -39,7 +39,7 @@
 
 ## Application scaffold
 
-- [ ] Expo / Router / TypeScript / NativeWind / TanStack Query / tests
+- [x] Expo / Router / TypeScript / NativeWind / TanStack Query / tests — Epic #12, merged via PRs #19–#23; iOS verification pending a macOS environment
 
 ## Deployment
 
